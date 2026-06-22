@@ -204,8 +204,26 @@ function deriveTiming(cards, wordById, tailPad) {
 }
 
 // ----------------------------------------------------------- NW alignment --
+// The script is written in prose, but the transcript times every spoken word
+// separately. So a compound the writer hyphenated ("full-time", "blood-work",
+// "45-minute") is ONE script token but TWO+ transcript words. Aligning them
+// 1:1 forces a bogus "mismatch". Splitting compound script tokens on hyphens
+// and slashes makes them line up word-for-word with the transcript, so these
+// stop being flagged at all.
+function tokenizeScript(scriptText) {
+  const out = [];
+  for (const chunk of scriptText.trim().split(/\s+/)) {
+    if (!chunk) continue;
+    const cleaned = core(chunk);
+    const parts = cleaned.split(/[-\u2010-\u2015/]+/).filter(Boolean);
+    const list = parts.length ? parts : [cleaned];
+    for (const p of list) if (p) out.push({ raw: p, norm: p.toLowerCase() });
+  }
+  return out;
+}
+
 function alignScript(words, scriptText) {
-  const tokens = scriptText.trim().split(/\s+/).filter(Boolean).map((t) => ({ raw: core(t), norm: core(t).toLowerCase() }));
+  const tokens = tokenizeScript(scriptText);
   const a = words.map((w) => core(w.text).toLowerCase());
   const b = tokens.map((t) => t.norm);
   const n = a.length, m = b.length;
@@ -654,6 +672,9 @@ export default function CaptionSplitter() {
   const [showQC, setShowQC] = useState(false);
   const [showTL, setShowTL] = useState(true);
   const [script, setScript] = useState("");
+  const [ignored, setIgnored] = useState(() => new Set()); // rejected mismatch signatures
+  const [cursor, setCursor] = useState(0);                 // current mismatch in the triage list
+  const [located, setLocated] = useState(null);            // word id flashing as "located"
   const [dragOver, setDragOver] = useState(false);
   const [flash, setFlash] = useState({});
   const [pps, setPps] = useState(80);
@@ -681,9 +702,35 @@ export default function CaptionSplitter() {
     [words, script]
   );
   const lane = useMemo(() => buildScriptLane(alignment), [alignment]);
-  const subs = useMemo(() => (alignment ? alignment.ops.filter((o) => o.type === "sub") : []), [alignment]);
+  const allSubs = useMemo(() => (alignment ? alignment.ops.filter((o) => o.type === "sub") : []), [alignment]);
   const dels = alignment ? alignment.ops.filter((o) => o.type === "del").length : 0;
   const inss = alignment ? alignment.ops.filter((o) => o.type === "ins").length : 0;
+
+  // A mismatch's identity is the (transcript word, script spelling) pair, so a
+  // rejected one stays rejected across live re-alignment as long as it recurs.
+  const sigOf = useCallback(
+    (op) => (alignment && words[op.t] ? words[op.t].id + "→" + alignment.tokens[op.s].norm : ""),
+    [alignment, words]
+  );
+  const activeSubs = useMemo(
+    () => allSubs.filter((op) => !ignored.has(sigOf(op))),
+    [allSubs, ignored, sigOf]
+  );
+  const ignoredSubs = useMemo(
+    () => allSubs.filter((op) => ignored.has(sigOf(op))),
+    [allSubs, ignored, sigOf]
+  );
+  const curIdx = activeSubs.length ? Math.min(Math.max(cursor, 0), activeSubs.length - 1) : -1;
+
+  // word id -> card id, for showing each mismatch's card and locating it
+  const cardOfWord = useMemo(() => {
+    const m = {}; cards.forEach((c) => c.wordIds.forEach((id) => { m[id] = c.id; }));
+    return m;
+  }, [cards]);
+  const locatedCardIdx = useMemo(
+    () => (located ? cards.findIndex((c) => c.wordIds.indexOf(located) !== -1) : -1),
+    [located, cards]
+  );
 
   const activeWord = useMemo(
     () => (audio.url && words.length ? findActiveWord(words, audio.time) : null),
@@ -847,20 +894,70 @@ export default function CaptionSplitter() {
   }, [derived, audio]);
   const playWord = useCallback((w) => audio.playRange(w.start, w.end), [audio]);
 
-  // ---- QC apply ----
-  const applyFix = (op) => {
+  // ---- QC apply / reject / locate ----
+  const flashWord = useCallback((wid, ms = 1400) => {
+    setFlash((f) => ({ ...f, [wid]: true }));
+    setTimeout(() => setFlash((f) => { const n = { ...f }; delete n[wid]; return n; }), ms);
+  }, []);
+
+  // scroll a word into view in the card list, ring it, and (if loaded) play it
+  const locateWord = useCallback((wid, withAudio) => {
+    setLocated(wid);
+    if (typeof document !== "undefined") {
+      requestAnimationFrame(() => {
+        const el = document.querySelector('.tok[data-wid="' + wid + '"]');
+        if (el && el.scrollIntoView) el.scrollIntoView({ block: "center", behavior: "smooth" });
+      });
+    }
+    const w = wordById[wid];
+    if (withAudio && w && audio.url) audio.playRange(w.start, w.end);
+    setTimeout(() => setLocated((cur) => (cur === wid ? null : cur)), 2600);
+  }, [wordById, audio]);
+
+  const applyFix = useCallback((op) => {
+    if (!alignment || !words[op.t]) return;
     const wid = words[op.t].id;
     const tok = alignment.tokens[op.s];
     apply(words.map((w) => (w.id === wid ? { ...w, text: tok.raw } : w)), cards);
-    setFlash((f) => ({ ...f, [wid]: true }));
-    setTimeout(() => setFlash((f) => { const n = { ...f }; delete n[wid]; return n; }), 1400);
-  };
+    flashWord(wid);
+  }, [alignment, words, cards, apply, flashWord]);
+
+  // reject = "this isn't a spelling error" — remember it and stop flagging it
+  const rejectFix = useCallback((op) => {
+    const sig = sigOf(op);
+    if (sig) setIgnored((s) => { const n = new Set(s); n.add(sig); return n; });
+  }, [sigOf]);
+  const restoreFix = useCallback((op) => {
+    const sig = sigOf(op);
+    if (sig) setIgnored((s) => { const n = new Set(s); n.delete(sig); return n; });
+  }, [sigOf]);
+
+  // act on the current mismatch, then reveal the next one
+  const applyCurrent = useCallback(() => {
+    if (curIdx < 0) return;
+    applyFix(activeSubs[curIdx]);
+    const nxt = activeSubs[curIdx + 1];
+    if (nxt && words[nxt.t]) locateWord(words[nxt.t].id, false);
+  }, [curIdx, activeSubs, applyFix, words, locateWord]);
+  const rejectCurrent = useCallback(() => {
+    if (curIdx < 0) return;
+    rejectFix(activeSubs[curIdx]);
+    const nxt = activeSubs[curIdx + 1];
+    if (nxt && words[nxt.t]) locateWord(words[nxt.t].id, false);
+  }, [curIdx, activeSubs, rejectFix, words, locateWord]);
+  const moveCursor = useCallback((delta) => {
+    if (!activeSubs.length) return;
+    const next = Math.min(Math.max(curIdx + delta, 0), activeSubs.length - 1);
+    setCursor(next);
+    const op = activeSubs[next];
+    if (op && words[op.t]) locateWord(words[op.t].id, false);
+  }, [activeSubs, curIdx, words, locateWord]);
 
   const resegment = () => { if (loaded) { apply(words, seedCards(words, cfg)); setHlAnchor({}); } };
 
   // ---- exports ----
   const exportCaptions = () => download((fileName.replace(/\.json$/i, "") || "captions") + "_captions.json", buildCaptionsJSON(cards, derived));
-  const exportTable = () => download((fileName.replace(/\.json$/i, "") || "captions") + "_wordtable.json", { meta: { tool: "CaptionSplitter", version: 2, cfg }, words, cards });
+  const exportTable = () => download((fileName.replace(/\.json$/i, "") || "captions") + "_wordtable.json", { meta: { tool: "CaptionSplitter", version: 2.1, cfg }, words, cards });
 
   // ---- fit timeline to window ----
   const fitTimeline = useCallback(() => {
@@ -898,6 +995,23 @@ export default function CaptionSplitter() {
     return () => window.removeEventListener("keydown", onKey);
   }, [editing, undo, redo]);
 
+  // ---- script triage shortcuts (only while the Check-script panel is open) ----
+  useEffect(() => {
+    if (!showQC) return;
+    const onKey = (e) => {
+      const tag = (e.target.tagName || "").toLowerCase();
+      // never hijack typing (script box, word edit) or modifier combos (undo etc.)
+      if (editing != null || tag === "input" || tag === "textarea" || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (curIdx < 0) return;
+      if (e.key === "Enter") { e.preventDefault(); applyCurrent(); }
+      else if (e.key === "Backspace" || e.key === "Delete") { e.preventDefault(); rejectCurrent(); }
+      else if (e.key === "ArrowDown") { e.preventDefault(); moveCursor(1); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); moveCursor(-1); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [showQC, editing, curIdx, applyCurrent, rejectCurrent, moveCursor]);
+
   // ====================================================================== UI
   return (
     <div className="cap-root" style={rootStyle}>
@@ -915,7 +1029,7 @@ export default function CaptionSplitter() {
           </div>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 13, fontWeight: 650, letterSpacing: "-0.01em" }}>
-              Caption Splitter <span className="mono" style={{ fontSize: 9.5, color: C.mut2, fontWeight: 600, verticalAlign: "middle" }}>V2</span>
+              Caption Splitter <span className="mono" style={{ fontSize: 9.5, color: C.mut2, fontWeight: 600, verticalAlign: "middle" }}>V2.1</span>
             </div>
             <div className="mono" style={{ fontSize: 10.5, color: C.mut2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {loaded ? fileName : "no transcript loaded"}
@@ -947,7 +1061,7 @@ export default function CaptionSplitter() {
               <Clock size={13} /> Timeline
             </button>
             <button className="btn" onClick={() => setShowQC((v) => !v)} data-on={showQC ? "1" : ""}>
-              <ListChecks size={13} /> Check script {subs.length ? <span className="badge">{subs.length}</span> : null}
+              <ListChecks size={13} /> Check script {activeSubs.length ? <span className="badge">{activeSubs.length}</span> : null}
             </button>
             <button className="btn" onClick={() => setShowCfg((v) => !v)} data-on={showCfg ? "1" : ""}>
               <Sliders size={13} /> Rules
@@ -993,8 +1107,8 @@ export default function CaptionSplitter() {
           <Stat icon={<Clock size={12} />} label="duration" value={totalDur.toFixed(1) + "s"} />
           <Stat icon={<AlertTriangle size={12} />} label="over-limit rows" value={warnCount}
             tone={warnCount ? "warn" : null} />
-          {alignment && <Stat icon={<ListChecks size={12} />} label="script mismatches" value={subs.length}
-            tone={subs.length ? "accent" : "ok"} />}
+          {alignment && <Stat icon={<ListChecks size={12} />} label="script mismatches" value={activeSubs.length}
+            tone={activeSubs.length ? "accent" : "ok"} />}
         </div>
       )}
 
@@ -1022,7 +1136,8 @@ export default function CaptionSplitter() {
               {cards.map((card, ci) => (
                 <CardRow key={card.id + "-" + card.wordIds[0]} card={card} ci={ci} d={derived[ci]}
                   wordById={wordById} editing={editing} editVal={editVal} flash={flash}
-                  activeWord={ci === activeCardIdx ? activeWord : null} hasAudio={!!audio.url}
+                  activeWord={ci === activeCardIdx ? activeWord : null}
+                  located={ci === locatedCardIdx ? located : null} hasAudio={!!audio.url}
                   setEditVal={setEditVal} startEdit={startEdit} commitEdit={commitEdit} cancelEdit={cancelEdit}
                   setHL={setHL} splitCard={splitCard} mergeUp={mergeUp} mergeDown={mergeDown}
                   mergeWords={mergeWordsByIds} playCard={playCard} playWord={playWord}
@@ -1042,35 +1157,82 @@ export default function CaptionSplitter() {
               <button className="icon-btn" onClick={() => setShowQC(false)}><X size={14} /></button>
             </div>
             <p style={{ fontSize: 11.5, color: C.mut, lineHeight: 1.5, margin: "0 0 10px" }}>
-              Paste the script you actually wrote. It's the source of truth for <em>spelling</em>; the transcript stays the source of truth for <em>timing</em>. It aligns live — type and the matches update, and they also appear under the waveform in the timeline.
+              Paste the script you actually wrote — it's the source of truth for <em>spelling</em>; the transcript stays the source of truth for <em>timing</em>. <strong>Click a mismatch</strong> to jump to it and hear it. If it's not a real typo (just a word the script hyphenates or splits differently), <strong>Reject</strong> it.
             </p>
             <textarea className="ta" value={script} onChange={(e) => setScript(e.target.value)}
               placeholder="Paste the script here…" spellCheck={false} />
 
             {alignment && (
               <div style={{ marginTop: 14 }}>
-                {subs.length === 0 ? (
+                {activeSubs.length === 0 ? (
                   <div style={qcClean}>
-                    <Check size={14} color={C.ok} /> No spelling mismatches against the script.
+                    <Check size={14} color={C.ok} /> No spelling mismatches to review{ignoredSubs.length ? " (" + ignoredSubs.length + " rejected)" : ""}.
                   </div>
                 ) : (
                   <>
-                    <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.04em", color: C.mut, margin: "2px 0 8px" }}>
-                      {subs.length} mismatch{subs.length === 1 ? "" : "es"}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, margin: "2px 0 8px" }}>
+                      <span style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.04em", color: C.mut }}>
+                        {activeSubs.length} to review · #{curIdx + 1}
+                      </span>
+                      <span style={{ display: "flex", gap: 4 }}>
+                        <button className="btn btn-sm" onClick={applyCurrent} title="Apply the current mismatch (Enter)">
+                          <Check size={12} /> Apply <kbd className="kbd">⏎</kbd>
+                        </button>
+                        <button className="btn btn-sm btn-ghost" onClick={rejectCurrent} title="Reject — not a spelling error (Backspace)">
+                          <X size={12} /> Reject <kbd className="kbd">⌫</kbd>
+                        </button>
+                      </span>
                     </div>
-                    {subs.map((op, k) => (
-                      <div key={k} style={subRow}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, fontSize: 12.5 }}>
-                          <span className="mono" style={{ color: C.mut2, fontSize: 10.5 }}>{words[op.t].id}</span>
-                          <span style={{ color: C.accentText, textDecoration: "line-through", textDecorationColor: C.mut2 }}>{core(words[op.t].text)}</span>
-                          <span style={{ color: C.mut2 }}>→</span>
-                          <span style={{ color: C.ok, fontWeight: 600 }}>{alignment.tokens[op.s].raw}</span>
+                    <div style={{ fontSize: 10, color: C.mut2, margin: "0 0 8px" }}>↑/↓ move · click a row to hear it</div>
+                    {activeSubs.map((op, k) => {
+                      const wid = words[op.t].id;
+                      const isCur = k === curIdx;
+                      return (
+                        <div key={sigOf(op)} className={"sub-row" + (isCur ? " cur" : "")}
+                          onClick={() => { setCursor(k); locateWord(wid, true); }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 7, minWidth: 0, fontSize: 12.5 }}>
+                            <span className="mono sub-card">C{cardOfWord[wid] || "?"}</span>
+                            <span style={{ color: C.accentText, textDecoration: "line-through", textDecorationColor: C.mut2 }}>{core(words[op.t].text)}</span>
+                            <span style={{ color: C.mut2 }}>→</span>
+                            <span style={{ color: C.ok, fontWeight: 600 }}>{alignment.tokens[op.s].raw}</span>
+                          </div>
+                          <span style={{ display: "flex", gap: 3, flex: "0 0 auto" }}>
+                            <button className="icon-btn sm" title="Apply this spelling"
+                              onClick={(e) => { e.stopPropagation(); applyFix(op); }}><Check size={13} /></button>
+                            <button className="icon-btn sm" title="Reject — not a typo"
+                              onClick={(e) => { e.stopPropagation(); rejectFix(op); }}><X size={13} /></button>
+                          </span>
                         </div>
-                        <button className="btn btn-sm" onClick={() => applyFix(op)}>Apply</button>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </>
                 )}
+
+                {ignoredSubs.length > 0 && (
+                  <details style={{ marginTop: 12, borderTop: "1px solid " + C.borderSoft, paddingTop: 10 }}>
+                    <summary style={{ fontSize: 11, color: C.mut, cursor: "pointer" }}>
+                      {ignoredSubs.length} rejected (not treated as typos)
+                    </summary>
+                    <div style={{ marginTop: 8 }}>
+                      {ignoredSubs.map((op) => {
+                        const wid = words[op.t].id;
+                        return (
+                          <div key={sigOf(op)} className="sub-row" style={{ opacity: 0.7 }}
+                            onClick={() => locateWord(wid, true)}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 7, minWidth: 0, fontSize: 12 }}>
+                              <span className="mono sub-card">C{cardOfWord[wid] || "?"}</span>
+                              <span style={{ color: C.mut }}>{core(words[op.t].text)}</span>
+                              <span style={{ color: C.mut2 }}>→</span>
+                              <span style={{ color: C.mut }}>{alignment.tokens[op.s].raw}</span>
+                            </div>
+                            <button className="btn btn-sm btn-ghost" onClick={(e) => { e.stopPropagation(); restoreFix(op); }}>Restore</button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </details>
+                )}
+
                 {(dels > 0 || inss > 0) && (
                   <div style={{ marginTop: 12, fontSize: 11, color: C.mut2, lineHeight: 1.5, borderTop: "1px solid " + C.borderSoft, paddingTop: 10 }}>
                     {dels > 0 && <div>{dels} transcript word{dels === 1 ? "" : "s"} not in the script — likely filler or a mis-hear. Fix the text inline if needed.</div>}
@@ -1106,7 +1268,7 @@ function Stat({ icon, label, value, tone }) {
 }
 
 const CardRow = React.memo(function CardRow({
-  card, ci, d, wordById, editing, editVal, flash, activeWord, hasAudio,
+  card, ci, d, wordById, editing, editVal, flash, activeWord, located, hasAudio,
   setEditVal, startEdit, commitEdit, cancelEdit, setHL, splitCard, mergeUp, mergeDown,
   mergeWords, playCard, playWord, isLast,
 }) {
@@ -1144,6 +1306,7 @@ const CardRow = React.memo(function CardRow({
             const role = local < card.hlFrom ? "top" : local <= card.hlTo ? "hl" : "bot";
             const isEditing = editing === w.id;
             const isActive = activeWord === w.id;
+            const isLocated = located === w.id;
             return (
               <React.Fragment key={w.id}>
                 {isEditing ? (
@@ -1153,8 +1316,8 @@ const CardRow = React.memo(function CardRow({
                     onKeyDown={(e) => { if (e.key === "Enter") commitEdit(); if (e.key === "Escape") cancelEdit(); }}
                     style={{ width: Math.max(40, editVal.length * 9 + 18) }} />
                 ) : (
-                  <span
-                    className={"tok tok-" + role + (flash[w.id] ? " tok-flash" : "") + (isActive ? " tok-active" : "")}
+                  <span data-wid={w.id}
+                    className={"tok tok-" + role + (flash[w.id] ? " tok-flash" : "") + (isActive ? " tok-active" : "") + (isLocated ? " tok-located" : "")}
                     title={core(w.text) + "  ·  " + w.start.toFixed(2) + "–" + w.end.toFixed(2) + "s  ·  " + w.id}
                     onClick={(e) => { if (e.altKey && hasAudio) { playWord(w); return; } setHL(ci, local, e.shiftKey); }}
                     onDoubleClick={() => startEdit(w)}>
@@ -1293,6 +1456,16 @@ const CSS = `
 .tok-hl:hover{background:#48211f}
 .tok-flash{animation:flash 1.3s ease}
 .tok-active{box-shadow:inset 0 -2px 0 0 var(--ok),0 0 0 1px rgba(61,214,140,.5);color:var(--text)!important}
+.tok-located{box-shadow:0 0 0 2px var(--accent),0 0 0 5px rgba(229,72,77,.25)!important;background:var(--accentDim)!important;color:var(--text)!important;animation:locatePulse 1.1s ease}
+@keyframes locatePulse{0%{box-shadow:0 0 0 2px var(--accent),0 0 0 10px rgba(229,72,77,.45)}100%{box-shadow:0 0 0 2px var(--accent),0 0 0 5px rgba(229,72,77,.18)}}
+
+.sub-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 8px;margin:0 -8px;
+  border-bottom:1px solid var(--borderSoft,#1f1f23);cursor:pointer;border-radius:6px;transition:background .12s ease}
+.sub-row:hover{background:var(--panel2)}
+.sub-row.cur{background:#221012;box-shadow:inset 2px 0 0 0 var(--accent)}
+.sub-card{font-size:9.5px;color:var(--mut2);background:#0a0a0b;border:1px solid var(--border);border-radius:4px;padding:1px 4px;flex:0 0 auto}
+.kbd{font:600 9.5px ui-monospace,Menlo,Consolas,monospace;background:#0a0a0b;border:1px solid var(--border);
+  border-bottom-width:2px;border-radius:4px;padding:0 3px;margin-left:3px;color:var(--mut)}
 @keyframes flash{0%{background:var(--ok);color:#06140d}60%{background:var(--okDim,#123026)}100%{background:transparent}}
 .tok-edit{font-size:16px;padding:1px 5px;border-radius:5px;background:#000;border:1px solid var(--accent);
   color:var(--text);outline:none}
