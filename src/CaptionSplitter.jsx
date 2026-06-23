@@ -30,7 +30,7 @@ import {
   Upload, Download, Scissors, ArrowUpToLine, ArrowDownToLine, FileText,
   AlertTriangle, Check, X, RotateCcw, Sliders, Type, Clock, Layers, ListChecks,
   Eye, Play, Pause, Link2, Music, ZoomIn, ZoomOut, Maximize2, Volume2,
-  Undo2, Redo2,
+  Undo2, Redo2, Keyboard, FileCode2, Copy, ClipboardCheck,
 } from "lucide-react";
 
 // ---------------------------------------------------------------- palette ---
@@ -41,6 +41,22 @@ const C = {
   warn: "#E0A92E", warnDim: "#3a2f12", ok: "#3DD68C", okDim: "#123026",
   wave: "#3a3a42", waveHl: "#5a3034", blue: "#4a8cff",
 };
+
+// ---- embedded assets ------------------------------------------------------
+// App logo (inlined so the build stays a single self-contained file).
+const LOGO_SRC = "data:image/png;base64,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";
+
+// The downstream After Effects script (CaptionBuilder.jsx) that consumes the
+// exported captions JSON. Embedded as base64 and decoded (UTF-8 safe) so users
+// can copy or download it straight from the app.
+const CAPTION_BUILDER_B64 = "Ly8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQ0KLy8gQ2FwdGlvbkJ1aWxkZXIuanN4ICDigJQgIEFmdGVyIEVmZmVjdHMgY2FwdGlvbiBidWlsZGVyDQovLyBQZXItcm93LXRpbWVkIHN0YWNrZWQgY2FwdGlvbnMgZnJvbSBhIGNhcHRpb25zIEpTT04uDQovLyBFUzMgLyBFeHRlbmRTY3JpcHQuIE9wZW4gYSBjb21wLCBydW4sIHBpY2sgdGhlIGNhcHRpb25zIEpTT04uDQovLw0KLy8gPj4+IEZPTlQgU0VUVVAgKGRvIHRoaXMgb25jZSwgZml4ZXMgYWxsIHRoZSBzdWJzdGl0dXRpb24gcHJvYmxlbXMpIDw8PA0KLy8gTmFtZS1iYXNlZCBmb250IHNldHRpbmcgaXMgdW5yZWxpYWJsZSBvbiB0aGlzIEFFLCBzbyB0aGUgc2NyaXB0IGNvcGllcyBmb250cw0KLy8gZnJvbSB0d28gcmVmZXJlbmNlIGxheWVycyB5b3UgbWFrZSBieSBoYW5kOg0KLy8gICAxLiBNYWtlIGEgdGV4dCBsYXllciwgc2V0IGl0IHRvIHlvdXIgSElHSExJR0hUIGZvbnQgaW4gdGhlIENoYXJhY3RlciBwYW5lbA0KLy8gICAgICAoRXVyb3BhIEdyb3Rlc2sgU0gpLCBuYW1lIGl0IGV4YWN0bHkgIFJFRl9ITA0KLy8gICAyLiBNYWtlIGEgdGV4dCBsYXllciwgc2V0IGl0IHRvIHlvdXIgU01BTEwgZm9udCAoSW50ZXIsIExpZ2h0KSwNCi8vICAgICAgbmFtZSBpdCBleGFjdGx5ICBSRUZfU00NCi8vICAgMy4gTGVhdmUgYm90aCBpbiB0aGUgY29tcCBhbmQgcnVuLiBUaGUgc2NyaXB0IGR1cGxpY2F0ZXMgdGhlbSBwZXIgcm93IGFuZA0KLy8gICAgICBvbmx5IGNoYW5nZXMgdGhlIHRleHQgKyBzaXplIC0+IHRoZSBmb250IGlzIG5ldmVyIHJlLXJlc29sdmVkLCBzbyBpdA0KLy8gICAgICBjYW4ndCBkcmlmdCB0byBUYWN0aWMgLyBJbnRlciBSZWd1bGFyLiBUaGUgUkVGIGxheWVycyBhcmUgYXV0by1kaXNhYmxlZA0KLy8gICAgICBhZnRlciB0aGUgYnVpbGQgKGRlbGV0ZSB0aGVtIHdoZW5ldmVyKS4NCi8vIElmIGEgUkVGIGxheWVyIGlzIG1pc3NpbmcgaXQgZmFsbHMgYmFjayB0byBzZXR0aW5nIHRoZSBmb250IGJ5IG5hbWUgKGZsYWt5KS4NCi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NCg0KLy8gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSBMQVlPVVQgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KdmFyIFNJWkVfSEwgICA9IDE2MDsNCnZhciBTSVpFX1NNICAgPSA1NTsNCnZhciBST1dfR0FQICAgPSAyMDsNCnZhciBZX0FOQ0hPUiAgPSAwLjU7ICAgICAgICAgIC8vIDAuNSA9IGNlbnRyZSwgMC43OCA9IGxvd2VyLXRoaXJkDQoNCi8vIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gRk9OVFMgKHJlZmVyZW5jZSBsYXllcnMpIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCnZhciBGT05UX0hMX1JFRiA9ICJSRUZfSEwiOyAgIC8vIHRleHQgbGF5ZXIgc2V0IHRvIHRoZSBoaWdobGlnaHQgZm9udCBieSBoYW5kDQp2YXIgRk9OVF9TTV9SRUYgPSAiUkVGX1NNIjsgICAvLyB0ZXh0IGxheWVyIHNldCB0byB0aGUgc21hbGwgZm9udCAoSW50ZXIgTGlnaHQpIGJ5IGhhbmQNCg0KLy8gRmFsbGJhY2sgT05MWSBpZiBhIFJFRiBsYXllciBhYm92ZSBpcyBub3QgZm91bmQgKG5hbWUtYmFzZWQsIG1heSBzdWJzdGl0dXRlKToNCnZhciBGT05UX0hMICAgPSB7IGZhbWlseTogIkV1cm9wYSBHcm90ZXNrIFNIIiwgc3R5bGU6ICIiIH07DQp2YXIgRk9OVF9TTSAgID0geyBmYW1pbHk6ICJJbnRlciIsICAgICAgICAgICAgIHN0eWxlOiAiTGlnaHQiIH07DQoNCi8vIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gQ0FTSU5HIC8gQ09MT1VSIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCnZhciBITF9DQVNFICAgPSAic2VudGVuY2UiOyAgIC8vICJzZW50ZW5jZSIgfCAibG93ZXIiIHwgInVwcGVyIiB8ICJ0aXRsZSINCnZhciBTTV9DQVNFICAgPSAiYXNpcyI7ICAgICAgIC8vICJhc2lzIiB8ICJsb3dlciIgfCAidXBwZXIiDQp2YXIgQ09MT1JfSEwgID0gWzEsIDEsIDFdOw0KdmFyIENPTE9SX1NNICA9IFsxLCAxLCAxXTsNCg0KLy8gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSBUSU1JTkcgKGZsYXQtc2NoZW1hIGZhbGxiYWNrKSAtLS0tLS0tLS0tLS0tLS0tLQ0KLy8gUGVyLXJvdyBKU09OIChvYmplY3RzIHdpdGggaW4vb3V0KSBpcyBhcHBsaWVkIHZlcmJhdGltLiBUaGVzZSBvbmx5IGFwcGx5IHRvDQovLyB0aGUgT0xEIGZsYXQgc2NoZW1hIHdoZXJlIGhpZ2hsaWdodCBpcyBhIHBsYWluIHN0cmluZy4NCnZhciBIT0xEX1RPX05FWFQgPSBmYWxzZTsNCnZhciBUQUlMX1BBRCAgICAgPSAwLjMwOw0KdmFyIE1BWF9IT0xEICAgICA9IDA7DQoNCnZhciBMT0dfRk9OVFMgPSBmYWxzZTsgICAgICAgIC8vIHRydWU6IGJ1aWxkIGNhcmQgMSBvbmx5LCBhbGVydCByZXNvbHZlZCBmb250cywgc3RvcC4NCi8vIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCg0KDQooZnVuY3Rpb24gKCkgew0KICAgIHZhciBjb21wID0gYXBwLnByb2plY3QuYWN0aXZlSXRlbTsNCiAgICBpZiAoIShjb21wICYmIGNvbXAgaW5zdGFuY2VvZiBDb21wSXRlbSkpIHsgYWxlcnQoIk9wZW4gYSBjb21wIGZpcnN0LiIpOyByZXR1cm47IH0NCg0KICAgIHZhciBmID0gRmlsZS5vcGVuRGlhbG9nKCJTZWxlY3QgY2FwdGlvbnMgSlNPTiIsICIqLmpzb24iKTsNCiAgICBpZiAoIWYpIHsgcmV0dXJuOyB9DQogICAgZi5lbmNvZGluZyA9ICJVVEYtOCI7DQogICAgZi5vcGVuKCJyIik7IHZhciB0eHQgPSBmLnJlYWQoKTsgZi5jbG9zZSgpOw0KICAgIGlmICh0eHQuY2hhckNvZGVBdCgwKSA9PT0gMHhGRUZGKSB0eHQgPSB0eHQuc3Vic3RyaW5nKDEpOw0KDQogICAgdmFyIGNhcmRzOw0KICAgIHRyeSB7IGNhcmRzID0gZXZhbCgiKCIgKyB0eHQgKyAiKSIpOyB9DQogICAgY2F0Y2ggKGUpIHsgYWxlcnQoIkNvdWxkbid0IHBhcnNlIEpTT046XG4iICsgZS50b1N0cmluZygpKTsgcmV0dXJuOyB9DQogICAgaWYgKCEoY2FyZHMgJiYgY2FyZHMubGVuZ3RoKSkgeyBhbGVydCgiTm8gY2FyZHMgaW4gSlNPTi4iKTsgcmV0dXJuOyB9DQoNCiAgICBmdW5jdGlvbiB0YzJzZWModGMpIHsNCiAgICAgICAgdmFyIHAgPSBTdHJpbmcodGMpLnNwbGl0KCIsIik7DQogICAgICAgIHZhciBobXMgPSBwWzBdLnNwbGl0KCI6Iik7DQogICAgICAgIHZhciBtcyA9IChwLmxlbmd0aCA+IDEpID8gcGFyc2VJbnQocFsxXSwgMTApIDogMDsNCiAgICAgICAgcmV0dXJuIHBhcnNlSW50KGhtc1swXSwgMTApICogMzYwMCArIHBhcnNlSW50KGhtc1sxXSwgMTApICogNjAgKyBwYXJzZUludChobXNbMl0sIDEwKSArIG1zIC8gMTAwMDsNCiAgICB9DQogICAgZnVuY3Rpb24gaGFzKHYpIHsgcmV0dXJuIHYgIT0gbnVsbCAmJiBTdHJpbmcodikgIT09ICIiOyB9DQogICAgZnVuY3Rpb24gcmVjYXNlSEwodywgbGVhZHMpIHsNCiAgICAgICAgaWYgKEhMX0NBU0UgPT09ICJ1cHBlciIpIHJldHVybiB3LnRvVXBwZXJDYXNlKCk7DQogICAgICAgIGlmIChITF9DQVNFID09PSAibG93ZXIiKSByZXR1cm4gdy50b0xvd2VyQ2FzZSgpOw0KICAgICAgICBpZiAoSExfQ0FTRSA9PT0gInRpdGxlIikgcmV0dXJuIHcudG9Mb3dlckNhc2UoKS5yZXBsYWNlKC9cYlthLXpdL2csIGZ1bmN0aW9uIChjKSB7IHJldHVybiBjLnRvVXBwZXJDYXNlKCk7IH0pOw0KICAgICAgICB2YXIgcyA9IHcudG9Mb3dlckNhc2UoKTsNCiAgICAgICAgaWYgKGxlYWRzICYmIHMubGVuZ3RoKSBzID0gcy5jaGFyQXQoMCkudG9VcHBlckNhc2UoKSArIHMuc3Vic3RyaW5nKDEpOw0KICAgICAgICByZXR1cm4gczsNCiAgICB9DQogICAgZnVuY3Rpb24gcmVjYXNlU00odykgew0KICAgICAgICBpZiAoU01fQ0FTRSA9PT0gImxvd2VyIikgcmV0dXJuIHcudG9Mb3dlckNhc2UoKTsNCiAgICAgICAgaWYgKFNNX0NBU0UgPT09ICJ1cHBlciIpIHJldHVybiB3LnRvVXBwZXJDYXNlKCk7DQogICAgICAgIHJldHVybiB3Ow0KICAgIH0NCiAgICBmdW5jdGlvbiBnZXRSZWZMYXllcihuYW1lKSB7DQogICAgICAgIGlmICghbmFtZSkgcmV0dXJuIG51bGw7DQogICAgICAgIGZvciAodmFyIGkgPSAxOyBpIDw9IGNvbXAubnVtTGF5ZXJzOyBpKyspIHsNCiAgICAgICAgICAgIHZhciBMID0gY29tcC5sYXllcihpKTsNCiAgICAgICAgICAgIGlmIChMLm5hbWUgPT09IG5hbWUgJiYgTC5wcm9wZXJ0eSgiQURCRSBUZXh0IFByb3BlcnRpZXMiKSkgcmV0dXJuIEw7DQogICAgICAgIH0NCiAgICAgICAgcmV0dXJuIG51bGw7DQogICAgfQ0KICAgIHZhciByZWZITCA9IGdldFJlZkxheWVyKEZPTlRfSExfUkVGKTsNCiAgICB2YXIgcmVmU00gPSBnZXRSZWZMYXllcihGT05UX1NNX1JFRik7DQogICAgdmFyIHVzZWRSZWZzID0gW107DQogICAgaWYgKHJlZkhMKSB1c2VkUmVmcy5wdXNoKHJlZkhMKTsNCiAgICBpZiAocmVmU00pIHVzZWRSZWZzLnB1c2gocmVmU00pOw0KDQogICAgZnVuY3Rpb24gcGFyc2VGaWVsZChmaWVsZCwgZmJJbiwgZmJPdXQpIHsNCiAgICAgICAgaWYgKGZpZWxkID09IG51bGwpIHJldHVybiBudWxsOw0KICAgICAgICBpZiAodHlwZW9mIGZpZWxkID09PSAic3RyaW5nIikgew0KICAgICAgICAgICAgaWYgKGZpZWxkID09PSAiIikgcmV0dXJuIG51bGw7DQogICAgICAgICAgICByZXR1cm4geyB0ZXh0OiBmaWVsZCwgaW5TZWM6IGZiSW4sIG91dFNlYzogZmJPdXQgfTsNCiAgICAgICAgfQ0KICAgICAgICBpZiAoIWhhcyhmaWVsZC50ZXh0KSkgcmV0dXJuIG51bGw7DQogICAgICAgIHJldHVybiB7DQogICAgICAgICAgICB0ZXh0OiBmaWVsZC50ZXh0LA0KICAgICAgICAgICAgaW5TZWM6ICBoYXMoZmllbGRbImluIl0pICA/IHRjMnNlYyhmaWVsZFsiaW4iXSkgIDogZmJJbiwNCiAgICAgICAgICAgIG91dFNlYzogaGFzKGZpZWxkWyJvdXQiXSkgPyB0YzJzZWMoZmllbGRbIm91dCJdKSA6IGZiT3V0DQogICAgICAgIH07DQogICAgfQ0KDQogICAgLy8gQnVpbGQgYSBzdHlsZWQgdGV4dCBsYXllci4gSWYgcmVmTGF5ZXIgaXMgZ2l2ZW4sIERVUExJQ0FURSBpdCAoZm9udCBjb3BpZWQNCiAgICAvLyB2ZXJiYXRpbSwgbmV2ZXIgcmUtcmVzb2x2ZWQpLiBFbHNlIGNyZWF0ZSBmcmVzaCBhbmQgc2V0IGZvbnQgYnkgbmFtZStzdHlsZSwNCiAgICAvLyB2ZXJpZnlpbmcgQk9USCBmYW1pbHkgYW5kIHN0eWxlIG9uIHJlYWRiYWNrLg0KICAgIGZ1bmN0aW9uIG1ha2VSb3coc3RyLCBzaXplLCBjb2xvciwgZm9udFNwZWMsIHJlZkxheWVyLCBuYW1lLCBtZWFzdXJlVCkgew0KICAgICAgICB2YXIgdGwsIHRwLCBkb2MsIGFwcGxpZWQsIGdvdDsNCg0KICAgICAgICBpZiAocmVmTGF5ZXIpIHsNCiAgICAgICAgICAgIHRsID0gcmVmTGF5ZXIuZHVwbGljYXRlKCk7DQogICAgICAgICAgICB0bC5lbmFibGVkID0gdHJ1ZTsNCiAgICAgICAgICAgIHRwID0gdGwucHJvcGVydHkoIkFEQkUgVGV4dCBQcm9wZXJ0aWVzIikucHJvcGVydHkoIkFEQkUgVGV4dCBEb2N1bWVudCIpOw0KICAgICAgICAgICAgZG9jID0gdHAudmFsdWU7DQogICAgICAgICAgICBkb2MudGV4dCA9IHN0cjsNCiAgICAgICAgICAgIGRvYy5mb250U2l6ZSA9IHNpemU7DQogICAgICAgICAgICBkb2MuYXBwbHlGaWxsID0gdHJ1ZTsNCiAgICAgICAgICAgIGRvYy5maWxsQ29sb3IgPSBjb2xvcjsNCiAgICAgICAgICAgIGRvYy5qdXN0aWZpY2F0aW9uID0gUGFyYWdyYXBoSnVzdGlmaWNhdGlvbi5DRU5URVJfSlVTVElGWTsNCiAgICAgICAgICAgIHRwLnNldFZhbHVlKGRvYyk7ICAgICAgICAgICAgICAgICAgICAgICAvLyBmb250IHVudG91Y2hlZCAtPiBzdGF5cyByZXNvbHZlZA0KICAgICAgICAgICAgZ290ID0gU3RyaW5nKHRwLnZhbHVlLmZvbnRGYW1pbHkpICsgIiAvICIgKyBTdHJpbmcodHAudmFsdWUuZm9udFN0eWxlKTsNCiAgICAgICAgICAgIGFwcGxpZWQgPSB0cnVlOw0KICAgICAgICB9IGVsc2Ugew0KICAgICAgICAgICAgdGwgPSBjb21wLmxheWVycy5hZGRUZXh0KHN0cik7DQogICAgICAgICAgICB0cCA9IHRsLnByb3BlcnR5KCJBREJFIFRleHQgUHJvcGVydGllcyIpLnByb3BlcnR5KCJBREJFIFRleHQgRG9jdW1lbnQiKTsNCiAgICAgICAgICAgIHZhciB3YW50RiA9IFN0cmluZyhmb250U3BlYy5mYW1pbHkpOw0KICAgICAgICAgICAgdmFyIHdhbnRTID0gKGZvbnRTcGVjLnN0eWxlIHx8ICIiKTsNCiAgICAgICAgICAgIGZvciAodmFyIGEgPSAwOyBhIDwgNjsgYSsrKSB7DQogICAgICAgICAgICAgICAgZG9jID0gdHAudmFsdWU7DQogICAgICAgICAgICAgICAgZG9jLmZvbnRTaXplID0gc2l6ZTsgZG9jLmFwcGx5RmlsbCA9IHRydWU7IGRvYy5maWxsQ29sb3IgPSBjb2xvcjsNCiAgICAgICAgICAgICAgICBkb2MuanVzdGlmaWNhdGlvbiA9IFBhcmFncmFwaEp1c3RpZmljYXRpb24uQ0VOVEVSX0pVU1RJRlk7DQogICAgICAgICAgICAgICAgdHJ5IHsgZG9jLmZvbnRGYW1pbHkgPSB3YW50RjsgaWYgKHdhbnRTLmxlbmd0aCkgZG9jLmZvbnRTdHlsZSA9IHdhbnRTOyB9DQogICAgICAgICAgICAgICAgY2F0Y2ggKGUpIHsgdHJ5IHsgZG9jLmZvbnQgPSB3YW50RjsgfSBjYXRjaCAoZTIpIHt9IH0NCiAgICAgICAgICAgICAgICB0cC5zZXRWYWx1ZShkb2MpOw0KICAgICAgICAgICAgICAgIHZhciBva0YgPSAoU3RyaW5nKHRwLnZhbHVlLmZvbnRGYW1pbHkpID09PSB3YW50Rik7DQogICAgICAgICAgICAgICAgdmFyIG9rUyA9ICghd2FudFMubGVuZ3RoKSB8fCAoU3RyaW5nKHRwLnZhbHVlLmZvbnRTdHlsZSkgPT09IHdhbnRTKTsNCiAgICAgICAgICAgICAgICBpZiAob2tGICYmIG9rUykgYnJlYWs7ICAgICAgICAgICAgICAvLyB2ZXJpZnkgZmFtaWx5IEFORCBzdHlsZQ0KICAgICAgICAgICAgfQ0KICAgICAgICAgICAgZ290ID0gU3RyaW5nKHRwLnZhbHVlLmZvbnRGYW1pbHkpICsgIiAvICIgKyBTdHJpbmcodHAudmFsdWUuZm9udFN0eWxlKTsNCiAgICAgICAgICAgIGFwcGxpZWQgPSAoU3RyaW5nKHRwLnZhbHVlLmZvbnRGYW1pbHkpID09PSB3YW50RikgJiYNCiAgICAgICAgICAgICAgICAgICAgICAoIXdhbnRTLmxlbmd0aCB8fCBTdHJpbmcodHAudmFsdWUuZm9udFN0eWxlKSA9PT0gd2FudFMpOw0KICAgICAgICB9DQoNCiAgICAgICAgdGwubmFtZSA9IG5hbWU7DQogICAgICAgIHZhciByID0gdGwuc291cmNlUmVjdEF0VGltZShtZWFzdXJlVCwgZmFsc2UpOw0KICAgICAgICB0bC5wcm9wZXJ0eSgiQURCRSBUcmFuc2Zvcm0gR3JvdXAiKS5wcm9wZXJ0eSgiQURCRSBBbmNob3IgUG9pbnQiKQ0KICAgICAgICAgIC5zZXRWYWx1ZShbci5sZWZ0ICsgci53aWR0aCAvIDIsIHIudG9wICsgci5oZWlnaHQgLyAyXSk7DQogICAgICAgIHJldHVybiB7IGxheWVyOiB0bCwgaDogci5oZWlnaHQsIGFwcGxpZWQ6IGFwcGxpZWQsIGdvdDogZ290IH07DQogICAgfQ0KDQogICAgdmFyIHN0YXJ0cyA9IFtdOw0KICAgIGZvciAodmFyIGkgPSAwOyBpIDwgY2FyZHMubGVuZ3RoOyBpKyspIHN0YXJ0c1tpXSA9IHRjMnNlYyhjYXJkc1tpXS5zdGFydCk7DQoNCiAgICB2YXIgY3ggPSBjb21wLndpZHRoIC8gMiwgY3kgPSBjb21wLmhlaWdodCAqIFlfQU5DSE9SOw0KICAgIGFwcC5iZWdpblVuZG9Hcm91cCgiQnVpbGQgQ2FwdGlvbnMiKTsNCiAgICB2YXIgZmFpbGVkRm9udHMgPSAwLCBsb2dMaW5lcyA9IFtdOw0KDQogICAgZm9yICh2YXIgYyA9IDA7IGMgPCBjYXJkcy5sZW5ndGg7IGMrKykgew0KICAgICAgICB2YXIgY2FyZCA9IGNhcmRzW2NdOw0KDQogICAgICAgIHZhciBmYkluID0gdGMyc2VjKGNhcmQuc3RhcnQpOw0KICAgICAgICB2YXIgZW5kU2VjID0gaGFzKGNhcmQuZW5kKSA/IHRjMnNlYyhjYXJkLmVuZCkgOiBmYkluICsgMC41Ow0KICAgICAgICB2YXIgbmV4dFN0YXJ0ID0gKGMgPCBjYXJkcy5sZW5ndGggLSAxKSA/IHN0YXJ0c1tjICsgMV0gOiBudWxsOw0KICAgICAgICB2YXIgZmJPdXQ7DQogICAgICAgIGlmIChIT0xEX1RPX05FWFQpIHsNCiAgICAgICAgICAgIGZiT3V0ID0gKG5leHRTdGFydCAhPSBudWxsKSA/IG5leHRTdGFydCA6IGVuZFNlYzsNCiAgICAgICAgICAgIGlmIChNQVhfSE9MRCA+IDApIGZiT3V0ID0gTWF0aC5taW4oZmJPdXQsIGVuZFNlYyArIE1BWF9IT0xEKTsNCiAgICAgICAgfSBlbHNlIHsNCiAgICAgICAgICAgIGZiT3V0ID0gZW5kU2VjICsgVEFJTF9QQUQ7DQogICAgICAgICAgICBpZiAobmV4dFN0YXJ0ICE9IG51bGwpIGZiT3V0ID0gTWF0aC5taW4oZmJPdXQsIG5leHRTdGFydCk7DQogICAgICAgIH0NCg0KICAgICAgICB2YXIgdG9wID0gcGFyc2VGaWVsZChjYXJkLnNtYWxsX3RvcCwgICAgZmJJbiwgZmJPdXQpOw0KICAgICAgICB2YXIgaGxyID0gcGFyc2VGaWVsZChjYXJkLmhpZ2hsaWdodCwgICAgZmJJbiwgZmJPdXQpOw0KICAgICAgICB2YXIgYm90ID0gcGFyc2VGaWVsZChjYXJkLnNtYWxsX2JvdHRvbSwgZmJJbiwgZmJPdXQpOw0KICAgICAgICB2YXIgbGVhZHMgPSAhdG9wOw0KDQogICAgICAgIHZhciByb3dzID0gW107DQogICAgICAgIGZ1bmN0aW9uIHB1c2hSb3coZGVmLCBzaXplLCBjb2xvciwgZm9udFNwZWMsIHJlZkxheWVyLCBzdWZmaXgsIGlzSEwsIGxlYWRGbGFnKSB7DQogICAgICAgICAgICBpZiAoIWRlZikgcmV0dXJuOw0KICAgICAgICAgICAgdmFyIHMgPSBpc0hMID8gcmVjYXNlSEwoZGVmLnRleHQsIGxlYWRGbGFnKSA6IHJlY2FzZVNNKGRlZi50ZXh0KTsNCiAgICAgICAgICAgIHZhciBtID0gbWFrZVJvdyhzLCBzaXplLCBjb2xvciwgZm9udFNwZWMsIHJlZkxheWVyLCAiQyIgKyBjYXJkLmlkICsgc3VmZml4LCBkZWYuaW5TZWMpOw0KICAgICAgICAgICAgbS5pblNlYyA9IGRlZi5pblNlYzsgbS5vdXRTZWMgPSBkZWYub3V0U2VjOw0KICAgICAgICAgICAgcm93cy5wdXNoKG0pOw0KICAgICAgICB9DQogICAgICAgIHB1c2hSb3codG9wLCBTSVpFX1NNLCBDT0xPUl9TTSwgRk9OVF9TTSwgcmVmU00sICJfVE9QIiwgZmFsc2UsIGZhbHNlKTsNCiAgICAgICAgcHVzaFJvdyhobHIsIFNJWkVfSEwsIENPTE9SX0hMLCBGT05UX0hMLCByZWZITCwgIl9ITCIsICB0cnVlLCAgbGVhZHMpOw0KICAgICAgICBwdXNoUm93KGJvdCwgU0laRV9TTSwgQ09MT1JfU00sIEZPTlRfU00sIHJlZlNNLCAiX0JPVCIsIGZhbHNlLCBmYWxzZSk7DQogICAgICAgIGlmICghcm93cy5sZW5ndGgpIGNvbnRpbnVlOw0KDQogICAgICAgIHZhciB0b3RhbEggPSAwOw0KICAgICAgICBmb3IgKHZhciBrID0gMDsgayA8IHJvd3MubGVuZ3RoOyBrKyspIHRvdGFsSCArPSByb3dzW2tdLmg7DQogICAgICAgIHRvdGFsSCArPSBST1dfR0FQICogKHJvd3MubGVuZ3RoIC0gMSk7DQoNCiAgICAgICAgdmFyIHlDdXJzb3IgPSBjeSAtIHRvdGFsSCAvIDI7DQogICAgICAgIGZvciAodmFyIGsyID0gMDsgazIgPCByb3dzLmxlbmd0aDsgazIrKykgew0KICAgICAgICAgICAgdmFyIGggPSByb3dzW2syXS5oOw0KICAgICAgICAgICAgcm93c1trMl0ubGF5ZXIucHJvcGVydHkoIkFEQkUgVHJhbnNmb3JtIEdyb3VwIikucHJvcGVydHkoIkFEQkUgUG9zaXRpb24iKQ0KICAgICAgICAgICAgICAgICAgICAuc2V0VmFsdWUoW2N4LCB5Q3Vyc29yICsgaCAvIDJdKTsNCiAgICAgICAgICAgIHZhciBpblMgPSByb3dzW2syXS5pblNlYywgb3V0UyA9IHJvd3NbazJdLm91dFNlYzsNCiAgICAgICAgICAgIGlmIChvdXRTIDw9IGluUykgb3V0UyA9IGluUyArIDAuMTsNCiAgICAgICAgICAgIGlmIChvdXRTID4gY29tcC5kdXJhdGlvbikgb3V0UyA9IGNvbXAuZHVyYXRpb247DQogICAgICAgICAgICByb3dzW2syXS5sYXllci5pblBvaW50ICA9IGluUzsNCiAgICAgICAgICAgIHJvd3NbazJdLmxheWVyLm91dFBvaW50ID0gb3V0UzsNCiAgICAgICAgICAgIHlDdXJzb3IgKz0gaCArIFJPV19HQVA7DQogICAgICAgICAgICBpZiAoIXJvd3NbazJdLmFwcGxpZWQpIGZhaWxlZEZvbnRzKys7DQogICAgICAgIH0NCg0KICAgICAgICBpZiAoTE9HX0ZPTlRTKSB7DQogICAgICAgICAgICBmb3IgKHZhciBrMyA9IDA7IGszIDwgcm93cy5sZW5ndGg7IGszKyspDQogICAgICAgICAgICAgICAgbG9nTGluZXMucHVzaChyb3dzW2szXS5sYXllci5uYW1lICsgIiAgLT4gICIgKyByb3dzW2szXS5nb3QgKyAiICAob2s6ICIgKyByb3dzW2szXS5hcHBsaWVkICsgIikiKTsNCiAgICAgICAgICAgIGZvciAodmFyIGQgPSAwOyBkIDwgdXNlZFJlZnMubGVuZ3RoOyBkKyspIHVzZWRSZWZzW2RdLmVuYWJsZWQgPSBmYWxzZTsNCiAgICAgICAgICAgIGFwcC5lbmRVbmRvR3JvdXAoKTsNCiAgICAgICAgICAgIGFsZXJ0KCJMT0dfRk9OVFMgLS0gY2FyZCAiICsgY2FyZC5pZCArICI6XG5cbiIgKyBsb2dMaW5lcy5qb2luKCJcbiIpICsgIlxuXG4oU3RvcHBlZC4gU2V0IExPR19GT05UUz1mYWxzZSB0byBidWlsZCBhbGwuKSIpOw0KICAgICAgICAgICAgcmV0dXJuOw0KICAgICAgICB9DQogICAgfQ0KDQogICAgLy8gaGlkZSB0aGUgcmVmZXJlbmNlIGxheWVycyBzbyB0aGV5IGRvbid0IHJlbmRlcg0KICAgIGZvciAodmFyIGQyID0gMDsgZDIgPCB1c2VkUmVmcy5sZW5ndGg7IGQyKyspIHVzZWRSZWZzW2QyXS5lbmFibGVkID0gZmFsc2U7DQoNCiAgICBhcHAuZW5kVW5kb0dyb3VwKCk7DQogICAgdmFyIG1zZyA9ICJCdWlsdCAiICsgY2FyZHMubGVuZ3RoICsgIiBjYXB0aW9uIGNhcmRzIChwZXItcm93IHRpbWVkKS4iOw0KICAgIGlmICghcmVmSEwgfHwgIXJlZlNNKSB7DQogICAgICAgIG1zZyArPSAiXG5cbk5PVEU6ICIgKyAoIXJlZkhMID8gIlJFRl9ITCAiIDogIiIpICsgKCFyZWZTTSA/ICJSRUZfU00gIiA6ICIiKSArDQogICAgICAgICAgICAgICAibm90IGZvdW5kIC0tIHRob3NlIHJvd3MgdXNlZCBuYW1lLWJhc2VkIGZvbnRzIChtYXkgc3Vic3RpdHV0ZSkuICIgKw0KICAgICAgICAgICAgICAgIk1ha2UgdGhlIG1pc3NpbmcgcmVmZXJlbmNlIGxheWVyKHMpIGFuZCByZS1ydW4uIjsNCiAgICB9DQogICAgaWYgKGZhaWxlZEZvbnRzKSBtc2cgKz0gIlxuXG4iICsgZmFpbGVkRm9udHMgKyAiIGxheWVyKHMpIGRpZG4ndCBjb25maXJtIHRoZSByZXF1ZXN0ZWQgZm9udC4iOw0KICAgIGFsZXJ0KG1zZyk7DQp9KSgpOw==";
+function b64decode(s) {
+  try {
+    return decodeURIComponent(Array.prototype.map.call(atob(s),
+      (c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join(""));
+  } catch (e) { try { return atob(s); } catch (e2) { return ""; } }
+}
+const CAPTION_BUILDER = b64decode(CAPTION_BUILDER_B64);
 
 // ---------------------------------------------------------- text helpers ---
 const STOP = {};
@@ -138,8 +154,41 @@ function rePickFor(wordIds, wordById, interiorMargin) {  const span = wordIds.ma
 // so any structural change renumbers them 1..n in order.
 const renumber = (cs) => cs.map((c, i) => ({ ...c, id: i + 1 }));
 
+// Number of rendered rows for a card: small_top? + highlight + small_bottom?
+function cardRowCount(card) {
+  const before = card.hlFrom;                       // words above the highlight
+  const after = card.wordIds.length - 1 - card.hlTo; // words below it
+  return 1 + (before > 0 ? 1 : 0) + (after > 0 ? 1 : 0);
+}
+
+// Lone-word cards (a single highlighted word, no context line) read badly, so
+// any 1-row card is merged into a neighbour (previous preferred) and the
+// highlight re-picked.
+function mergeLoneCards(cards, words) {
+  const byId = {}; for (const w of words) byId[w.id] = w;
+  let cs = cards.map((c) => ({ ...c }));
+  let changed = true, guard = 0;
+  while (changed && guard++ < cards.length + 8) {
+    changed = false;
+    for (let k = 0; k < cs.length; k++) {
+      if (cardRowCount(cs[k]) > 1 || cs.length === 1) continue;
+      const into = k > 0 ? k - 1 : k + 1;             // glue onto previous, else next
+      const lo = Math.min(into, k), hi = Math.max(into, k);
+      const ids = cs[lo].wordIds.concat(cs[hi].wordIds);
+      const merged = { id: 0, wordIds: ids, ...rePickFor(ids, byId, 40) };
+      cs = cs.slice(0, lo).concat([merged], cs.slice(hi + 1));
+      changed = true; break;
+    }
+  }
+  return cs.map((c, i) => ({ ...c, id: i + 1 }));
+}
+
 function seedCards(words, cfg) {
   const INTERIOR = 40;
+  const lim = cfg.smallMaxChars;
+  const prefer2 = cfg.prefer2Row !== false;
+
+  // --- breath segmentation (unchanged) ---
   const breaths = [];
   let cur = [];
   for (let k = 0; k < words.length; k++) {
@@ -154,28 +203,62 @@ function seedCards(words, cfg) {
   }
   if (cur.length) breaths.push(cur);
 
+  // Evaluate one candidate span: where the highlight lands decides the layout.
+  // Highlight at an edge -> 2 rows (one small line). Highlight interior -> 3.
+  const layoutOf = (spanIdx) => {
+    const span = spanIdx.map((i) => words[i]);
+    const flags = span.map((w) => w.sentenceStart);
+    const { hi, hj } = pickHighlight(span, flags, INTERIOR);
+    const top = span.slice(0, hi), bot = span.slice(hj + 1);
+    const rows = 1 + (top.length ? 1 : 0) + (bot.length ? 1 : 0);
+    const fits = (!top.length || fragLen(top) <= lim) && (!bot.length || fragLen(bot) <= lim);
+    const overflow = (top.length ? Math.max(0, fragLen(top) - lim) : 0) +
+                     (bot.length ? Math.max(0, fragLen(bot) - lim) : 0);
+    let hlScore = -1;
+    for (let x = hi; x <= hj; x++) hlScore = Math.max(hlScore, scoreWord(span[x], flags[x]));
+    return { hi, hj, rows, fits, overflow, hlScore };
+  };
+
+  // Rank candidates: a fitting 2-row wins (when prefer2), then 3-row, then by
+  // larger size (fewer cards), stronger highlight, less overflow. A 1-row
+  // (lone) layout is always last and only used when nothing else is available.
+  const rank = (c) => {
+    if (!c.fits) return c.rows === 1 ? 0 : 1;
+    if (c.rows === 1) return 2;
+    if (c.rows === 2) return prefer2 ? 5 : 4;
+    if (c.rows === 3) return 4;
+    return 3;
+  };
+  const better = (a, b) => {
+    if (!a) return b; if (!b) return a;
+    const ra = rank(a), rb = rank(b);
+    if (ra !== rb) return ra > rb ? a : b;
+    if (a.size !== b.size) return a.size > b.size ? a : b;
+    if (a.hlScore !== b.hlScore) return a.hlScore > b.hlScore ? a : b;
+    return a.overflow <= b.overflow ? a : b;
+  };
+
   const cards = [];
   let cid = 1;
   for (const breath of breaths) {
-    let idx = 0;
-    while (idx < breath.length) {
-      let chosen = 1, hl = { hi: 0, hj: 0 };
-      for (let size = Math.min(cfg.cardMaxWords, breath.length - idx); size >= 1; size--) {
-        const spanIdx = breath.slice(idx, idx + size);
-        const span = spanIdx.map((i) => words[i]);
-        const flags = span.map((w) => w.sentenceStart);
-        const h = pickHighlight(span, flags, INTERIOR);
-        const top = span.slice(0, h.hi), bot = span.slice(h.hj + 1);
-        const okTop = !top.length || fragLen(top) <= cfg.smallMaxChars;
-        const okBot = !bot.length || fragLen(bot) <= cfg.smallMaxChars;
-        if ((okTop && okBot) || size === 1) { chosen = size; hl = h; break; }
+    let i = 0;
+    while (i < breath.length) {
+      const rem = breath.length - i;
+      const maxSize = Math.min(cfg.cardMaxWords, rem);
+      const lo = rem === 1 ? 1 : 2;            // never start a card as a lone word
+      let best = null;
+      for (let size = lo; size <= maxSize; size++) {
+        const spanIdx = breath.slice(i, i + size);
+        best = better(best, { ...layoutOf(spanIdx), size, spanIdx });
       }
-      const spanIdx = breath.slice(idx, idx + chosen);
-      cards.push({ id: cid++, wordIds: spanIdx.map((i) => words[i].id), hlFrom: hl.hi, hlTo: hl.hj });
-      idx += chosen;
+      if (!best) { const spanIdx = breath.slice(i, i + 1); best = { ...layoutOf(spanIdx), size: 1, spanIdx }; }
+      cards.push({ id: cid++, wordIds: best.spanIdx.map((k) => words[k].id), hlFrom: best.hi, hlTo: best.hj });
+      i += best.size;
     }
   }
-  return cards;
+
+  // sweep up any remaining lone cards (e.g. a one-word breath)
+  return mergeLoneCards(cards, words);
 }
 
 // --------------------------------------------------------------- derive ----
@@ -220,6 +303,35 @@ function tokenizeScript(scriptText) {
     for (const p of list) if (p) out.push({ raw: p, norm: p.toLowerCase() });
   }
   return out;
+}
+
+// --- spelling similarity: tells a real misspelling ("refine"->"refund") from a
+// genuinely different word the transcriber misheard ("afternoon"->"optimal").
+// Only the close ones are safe to auto-apply.
+function lev(a, b) {
+  const m = a.length, n = b.length;
+  if (!m) return n; if (!n) return m;
+  let prev = new Array(n + 1);
+  for (let j = 0; j <= n; j++) prev[j] = j;
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost);
+    }
+    prev = cur;
+  }
+  return prev[n];
+}
+const normWord = (s) => String(s == null ? "" : s).toLowerCase().replace(/[^a-z0-9]/g, "");
+function isCloseSpelling(aWord, bTok) {
+  const a = normWord(aWord), b = normWord(bTok);
+  if (!a || !b) return false;
+  if (a === b) return true;
+  // plural/tense/contraction variants: one stems the other
+  if ((a.startsWith(b) || b.startsWith(a)) && Math.abs(a.length - b.length) <= 3) return true;
+  const ml = Math.max(a.length, b.length);
+  return lev(a, b) <= Math.max(1, Math.round(ml * 0.3));
 }
 
 function alignScript(words, scriptText) {
@@ -675,10 +787,12 @@ export default function CaptionSplitter() {
   const [ignored, setIgnored] = useState(() => new Set()); // rejected mismatch signatures
   const [cursor, setCursor] = useState(0);                 // current mismatch in the triage list
   const [located, setLocated] = useState(null);            // word id flashing as "located"
+  const [modal, setModal] = useState(null);                // null | "shortcuts" | "aescript"
+  const [copied, setCopied] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [flash, setFlash] = useState({});
   const [pps, setPps] = useState(80);
-  const [cfg, setCfg] = useState({ breathGap: 0.3, tailPad: 0.3, cardMaxWords: 4, smallMaxChars: 18 });
+  const [cfg, setCfg] = useState({ breathGap: 0.3, tailPad: 0.3, cardMaxWords: 4, smallMaxChars: 18, prefer2Row: true });
   const [past, setPast] = useState([]);     // history snapshots {words, cards, label}
   const [future, setFuture] = useState([]); // redo stack
   const lastTag = useRef(null);             // for coalescing repeated edits (e.g. highlight)
@@ -721,6 +835,18 @@ export default function CaptionSplitter() {
     [allSubs, ignored, sigOf]
   );
   const curIdx = activeSubs.length ? Math.min(Math.max(cursor, 0), activeSubs.length - 1) : -1;
+
+  // which mismatches are close spelling variants (safe to auto-apply) vs
+  // genuinely different words (leave for manual review)
+  const closeSigs = useMemo(() => {
+    const s = new Set();
+    if (!alignment) return s;
+    for (const op of activeSubs) {
+      if (words[op.t] && isCloseSpelling(core(words[op.t].text), alignment.tokens[op.s].raw)) s.add(sigOf(op));
+    }
+    return s;
+  }, [alignment, activeSubs, words, sigOf]);
+  const closeCount = closeSigs.size;
 
   // word id -> card id, for showing each mismatch's card and locating it
   const cardOfWord = useMemo(() => {
@@ -953,11 +1079,54 @@ export default function CaptionSplitter() {
     if (op && words[op.t]) locateWord(words[op.t].id, false);
   }, [activeSubs, curIdx, words, locateWord]);
 
+  // apply a batch of mismatches in ONE undoable step
+  const applyBatch = useCallback((ops) => {
+    if (!alignment || !ops.length) return;
+    const repl = {};
+    for (const op of ops) if (words[op.t]) repl[words[op.t].id] = alignment.tokens[op.s].raw;
+    const ids = Object.keys(repl);
+    if (!ids.length) return;
+    apply(words.map((w) => (repl[w.id] != null ? { ...w, text: repl[w.id] } : w)), cards);
+    ids.forEach((wid) => flashWord(wid));
+  }, [alignment, words, cards, apply, flashWord]);
+
+  // auto-fix only the close spelling variants; leave different words for review
+  const autoFixSpellings = useCallback(() => {
+    applyBatch(activeSubs.filter((op) => closeSigs.has(sigOf(op))));
+  }, [applyBatch, activeSubs, closeSigs, sigOf]);
+  const applyAllRemaining = useCallback(() => {
+    if (typeof window !== "undefined" && activeSubs.length > 1 &&
+        !window.confirm("Apply ALL " + activeSubs.length + " mismatches, including ones that look like different words? You can undo this.")) return;
+    applyBatch(activeSubs);
+  }, [applyBatch, activeSubs]);
+
   const resegment = () => { if (loaded) { apply(words, seedCards(words, cfg)); setHlAnchor({}); } };
+
+  // ---- AE CaptionBuilder script: copy / download ----
+  const copyBuilder = useCallback(async () => {
+    let ok = false;
+    try { await navigator.clipboard.writeText(CAPTION_BUILDER); ok = true; }
+    catch (e) {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = CAPTION_BUILDER; ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta); ta.select(); ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+      } catch (e2) { ok = false; }
+    }
+    if (ok) { setCopied(true); setTimeout(() => setCopied(false), 1800); }
+  }, []);
+  const downloadBuilder = useCallback(() => {
+    const blob = new Blob([CAPTION_BUILDER], { type: "text/javascript" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "CaptionBuilder.jsx"; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }, []);
 
   // ---- exports ----
   const exportCaptions = () => download((fileName.replace(/\.json$/i, "") || "captions") + "_captions.json", buildCaptionsJSON(cards, derived));
-  const exportTable = () => download((fileName.replace(/\.json$/i, "") || "captions") + "_wordtable.json", { meta: { tool: "CaptionSplitter", version: 2.1, cfg }, words, cards });
+  const exportTable = () => download((fileName.replace(/\.json$/i, "") || "captions") + "_wordtable.json", { meta: { tool: "CaptionSplitter", version: 2.4, cfg }, words, cards });
 
   // ---- fit timeline to window ----
   const fitTimeline = useCallback(() => {
@@ -972,13 +1141,13 @@ export default function CaptionSplitter() {
     const onKey = (e) => {
       if (e.code !== "Space") return;
       const tag = (e.target.tagName || "").toLowerCase();
-      if (editing != null || tag === "input" || tag === "textarea") return;
+      if (modal || editing != null || tag === "input" || tag === "textarea") return;
       if (!audio.url) return;
       e.preventDefault(); audio.toggle();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [editing, audio.url, audio.toggle]);
+  }, [editing, modal, audio.url, audio.toggle]);
 
   // ---- undo / redo: Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z (or Ctrl+Y) ----
   useEffect(() => {
@@ -997,7 +1166,7 @@ export default function CaptionSplitter() {
 
   // ---- script triage shortcuts (only while the Check-script panel is open) ----
   useEffect(() => {
-    if (!showQC) return;
+    if (!showQC || modal) return;
     const onKey = (e) => {
       const tag = (e.target.tagName || "").toLowerCase();
       // never hijack typing (script box, word edit) or modifier combos (undo etc.)
@@ -1010,7 +1179,7 @@ export default function CaptionSplitter() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [showQC, editing, curIdx, applyCurrent, rejectCurrent, moveCursor]);
+  }, [showQC, modal, editing, curIdx, applyCurrent, rejectCurrent, moveCursor]);
 
   // ====================================================================== UI
   return (
@@ -1024,12 +1193,11 @@ export default function CaptionSplitter() {
       {/* ---------------- top bar ---------------- */}
       <header style={barStyle}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
-          <div style={{ width: 26, height: 26, borderRadius: 6, background: C.accent, display: "grid", placeItems: "center", flex: "0 0 auto" }}>
-            <Type size={15} color="#fff" strokeWidth={2.4} />
-          </div>
+          <img src={LOGO_SRC} alt="" width={28} height={28}
+            style={{ borderRadius: 7, display: "block", flex: "0 0 auto" }} />
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 13, fontWeight: 650, letterSpacing: "-0.01em" }}>
-              Caption Splitter <span className="mono" style={{ fontSize: 9.5, color: C.mut2, fontWeight: 600, verticalAlign: "middle" }}>V2.1</span>
+              Caption Splitter <span className="mono" style={{ fontSize: 9.5, color: C.mut2, fontWeight: 600, verticalAlign: "middle" }}>V2.4</span>
             </div>
             <div className="mono" style={{ fontSize: 10.5, color: C.mut2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {loaded ? fileName : "no transcript loaded"}
@@ -1066,6 +1234,12 @@ export default function CaptionSplitter() {
             <button className="btn" onClick={() => setShowCfg((v) => !v)} data-on={showCfg ? "1" : ""}>
               <Sliders size={13} /> Rules
             </button>
+            <button className="btn" onClick={() => setModal("shortcuts")} title="Keyboard & mouse shortcuts">
+              <Keyboard size={13} /> Shortcuts
+            </button>
+            <button className="btn btn-ghost" onClick={() => setModal("aescript")} title="Get the After Effects builder script">
+              <FileCode2 size={13} /> AE script
+            </button>
             <button className="btn btn-ghost" onClick={exportTable}><Layers size={13} /> Word table</button>
             <button className="btn btn-accent" onClick={exportCaptions}><Download size={13} /> Export captions</button>
           </>}
@@ -1090,11 +1264,19 @@ export default function CaptionSplitter() {
               </span>
             </label>
           ))}
+          <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <span style={{ fontSize: 10.5, color: C.mut, letterSpacing: "0.02em", textTransform: "uppercase" }}>Layout</span>
+            <button className="btn" data-on={cfg.prefer2Row ? "1" : ""}
+              onClick={() => setCfg((c) => ({ ...c, prefer2Row: !c.prefer2Row }))}
+              title="Default cards to two rows; only use three when a single small line can't hold the context">
+              <Layers size={13} /> {cfg.prefer2Row ? "Prefer 2-row" : "Allow 3-row"}
+            </button>
+          </label>
           <button className="btn" onClick={resegment} style={{ alignSelf: "flex-end" }}>
             <RotateCcw size={13} /> Re-segment
           </button>
           <div style={{ fontSize: 11, color: C.mut2, alignSelf: "flex-end", maxWidth: 260, lineHeight: 1.45 }}>
-            Re-segment rebuilds cards from the transcript and discards manual splits and merges. Timing always derives from word timing — these only affect seeding.
+            Re-segment rebuilds cards from the transcript and discards manual splits and merges. With <em>Prefer 2-row</em> on, cards lead with a small line into the highlight and never strand a single word. Timing always derives from word timing.
           </div>
         </div>
       )}
@@ -1157,7 +1339,7 @@ export default function CaptionSplitter() {
               <button className="icon-btn" onClick={() => setShowQC(false)}><X size={14} /></button>
             </div>
             <p style={{ fontSize: 11.5, color: C.mut, lineHeight: 1.5, margin: "0 0 10px" }}>
-              Paste the script you actually wrote — it's the source of truth for <em>spelling</em>; the transcript stays the source of truth for <em>timing</em>. <strong>Click a mismatch</strong> to jump to it and hear it. If it's not a real typo (just a word the script hyphenates or splits differently), <strong>Reject</strong> it.
+              Paste the script you actually wrote — it's the source of truth for <em>spelling</em>; the transcript stays the source of truth for <em>timing</em>. <strong>Auto-fix spellings</strong> corrects every close variant at once; the dot on each row shows whether it's a likely typo (<span style={{ color: C.ok }}>●</span>) or a genuinely different word (<span style={{ color: C.warn }}>●</span>) to judge yourself.
             </p>
             <textarea className="ta" value={script} onChange={(e) => setScript(e.target.value)}
               placeholder="Paste the script here…" spellCheck={false} />
@@ -1170,6 +1352,17 @@ export default function CaptionSplitter() {
                   </div>
                 ) : (
                   <>
+                    {/* bulk actions */}
+                    <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
+                      <button className="btn btn-sm btn-accent" onClick={autoFixSpellings} disabled={!closeCount}
+                        title="Apply every close spelling variant in one undoable step">
+                        <Check size={12} /> Auto-fix {closeCount} spelling{closeCount === 1 ? "" : "s"}
+                      </button>
+                      <button className="btn btn-sm btn-ghost" onClick={applyAllRemaining}
+                        title="Apply all listed mismatches, including different-looking words">
+                        Apply all {activeSubs.length}
+                      </button>
+                    </div>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, margin: "2px 0 8px" }}>
                       <span style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.04em", color: C.mut }}>
                         {activeSubs.length} to review · #{curIdx + 1}
@@ -1187,10 +1380,13 @@ export default function CaptionSplitter() {
                     {activeSubs.map((op, k) => {
                       const wid = words[op.t].id;
                       const isCur = k === curIdx;
+                      const close = closeSigs.has(sigOf(op));
                       return (
                         <div key={sigOf(op)} className={"sub-row" + (isCur ? " cur" : "")}
                           onClick={() => { setCursor(k); locateWord(wid, true); }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 7, minWidth: 0, fontSize: 12.5 }}>
+                            <span title={close ? "Likely spelling variant — auto-fixable" : "Looks like a different word — review"}
+                              style={{ flex: "0 0 auto", width: 7, height: 7, borderRadius: 4, background: close ? C.ok : C.warn }} />
                             <span className="mono sub-card">C{cardOfWord[wid] || "?"}</span>
                             <span style={{ color: C.accentText, textDecoration: "line-through", textDecorationColor: C.mut2 }}>{core(words[op.t].text)}</span>
                             <span style={{ color: C.mut2 }}>→</span>
@@ -1251,7 +1447,113 @@ export default function CaptionSplitter() {
           audio={audio} pps={pps} setPps={setPps} lane={lane} activeWord={activeWord}
           onFit={fitTimeline} scrollRef={tlScroll} />
       )}
+
+      {modal === "shortcuts" && <ShortcutsModal hasAudio={!!audio.url} onClose={() => setModal(null)} />}
+      {modal === "aescript" && (
+        <AeScriptModal copied={copied} onCopy={copyBuilder} onDownload={downloadBuilder} onClose={() => setModal(null)} />
+      )}
     </div>
+  );
+}
+
+// ----------------------------------------------------------- modals --------
+function Modal({ title, icon, onClose, wide, children }) {
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  return (
+    <div className="modal-scrim" onClick={onClose}>
+      <div className={"modal" + (wide ? " wide" : "")} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <div className="modal-head">
+          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 650 }}>{icon}{title}</div>
+          <button className="icon-btn" onClick={onClose} aria-label="Close"><X size={16} /></button>
+        </div>
+        <div className="modal-body">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function Keys({ children }) {
+  // render "Ctrl / Cmd + Z" style strings into <kbd> caps
+  return <span style={{ display: "inline-flex", gap: 3, flexWrap: "wrap" }}>
+    {children.split("+").map((part, i) => (
+      <span key={i} style={{ display: "inline-flex", gap: 3 }}>
+        {i > 0 && <span style={{ color: C.mut2 }}>+</span>}
+        {part.split("/").map((alt, j) => (
+          <span key={j} style={{ display: "inline-flex", gap: 3 }}>
+            {j > 0 && <span style={{ color: C.mut2, alignSelf: "center", fontSize: 10 }}>or</span>}
+            <kbd className="kbd lg">{alt.trim()}</kbd>
+          </span>
+        ))}
+      </span>
+    ))}
+  </span>;
+}
+
+function ShortcutsModal({ hasAudio, onClose }) {
+  const sec = (label) => <div className="sc-sec">{label}</div>;
+  const row = (keys, desc) => (
+    <div className="sc-row"><div className="sc-keys"><Keys>{keys}</Keys></div><div className="sc-desc">{desc}</div></div>
+  );
+  return (
+    <Modal title="Shortcuts" icon={<Keyboard size={16} color={C.accent} />} onClose={onClose} wide>
+      <div className="sc-grid">
+        <div>
+          {sec("Playback")}
+          {row("Space", "Play / pause audio")}
+          {row("Alt + click", "Play just that word")}
+          {sec("History")}
+          {row("Ctrl/Cmd + Z", "Undo")}
+          {row("Ctrl/Cmd + Shift + Z", "Redo")}
+          {row("Ctrl + Y", "Redo (alternate)")}
+          {sec("Editing a word")}
+          {row("Double-click", "Edit a word's text")}
+          {row("Enter", "Commit the edit")}
+          {row("Esc", "Cancel the edit")}
+        </div>
+        <div>
+          {sec("Highlight & cards")}
+          {row("Click", "Make a word the highlight")}
+          {row("Shift + click", "Extend the highlight")}
+          {sec("Script review (Check script open)")}
+          {row("Enter", "Apply the current mismatch")}
+          {row("Backspace/Delete", "Reject the current mismatch")}
+          {row("↑ / ↓", "Move between mismatches")}
+          {row("Click a row", "Jump to it" + (hasAudio ? " and hear it" : ""))}
+        </div>
+      </div>
+      <div className="sc-mouse">
+        Mouse on the card stream: <b>click</b> sets the highlight, <b>shift-click</b> extends it,
+        <b> double-click</b> edits text. Between two words, the <Scissors size={11} style={{ verticalAlign: "-2px" }} /> splits
+        the card and the <Link2 size={11} style={{ verticalAlign: "-2px" }} /> merges the two words into one timing atom. The
+        card rail's <ArrowUpToLine size={11} style={{ verticalAlign: "-2px" }} />/<ArrowDownToLine size={11} style={{ verticalAlign: "-2px" }} /> merge
+        a card into its neighbour{hasAudio ? <>, and <Play size={11} style={{ verticalAlign: "-2px" }} /> plays the card.</> : "."}
+      </div>
+    </Modal>
+  );
+}
+
+function AeScriptModal({ copied, onCopy, onDownload, onClose }) {
+  return (
+    <Modal title="CaptionBuilder.jsx — After Effects script" icon={<FileCode2 size={16} color={C.accent} />} onClose={onClose} wide>
+      <p style={{ fontSize: 12.5, color: C.mut, lineHeight: 1.55, margin: "0 0 10px" }}>
+        This is the downstream After Effects script. Export your captions JSON above, then run this in AE
+        (<span className="mono" style={{ fontSize: 11 }}>File ▸ Scripts ▸ Run Script File…</span>) and pick that JSON to build the per-row-timed caption layers.
+      </p>
+      <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+        <button className="btn btn-accent btn-sm" onClick={onCopy}>
+          {copied ? <ClipboardCheck size={13} /> : <Copy size={13} />} {copied ? "Copied!" : "Copy script"}
+        </button>
+        <button className="btn btn-sm" onClick={onDownload}><Download size={13} /> Download .jsx</button>
+      </div>
+      <div style={{ fontSize: 11.5, color: C.mut2, lineHeight: 1.5, margin: "0 0 10px", background: C.panel2, border: "1px solid " + C.border, borderRadius: 8, padding: "9px 11px" }}>
+        <b style={{ color: C.text }}>One-time font setup in AE:</b> make a text layer set to your highlight font (Europa Grotesk SH), name it exactly <span className="mono">REF_HL</span>; make another set to your small font (Inter Light), name it <span className="mono">REF_SM</span>. Leave both in the comp and run — the script copies fonts from them so they never substitute.
+      </div>
+      <pre className="code-block">{CAPTION_BUILDER}</pre>
+    </Modal>
   );
 }
 
@@ -1279,7 +1581,7 @@ const CardRow = React.memo(function CardRow({
       {/* left rail */}
       <div style={cardRail}>
         <div className="mono" style={{ fontSize: 13, fontWeight: 700, color: C.text }}>C{card.id}</div>
-        <div className="mono" style={{ fontSize: 10, color: C.mut2 }}>{d.top.length ? 3 : 2}-row</div>
+        <div className="mono" style={{ fontSize: 10, color: C.mut2 }}>{cardRowCount(card)}-row</div>
         <div style={{ display: "flex", gap: 2, marginTop: 2 }}>
           {hasAudio && (
             <button className="icon-btn sm" title="Play this card's audio" onClick={() => playCard(ci)}>
@@ -1466,6 +1768,34 @@ const CSS = `
 .sub-card{font-size:9.5px;color:var(--mut2);background:#0a0a0b;border:1px solid var(--border);border-radius:4px;padding:1px 4px;flex:0 0 auto}
 .kbd{font:600 9.5px ui-monospace,Menlo,Consolas,monospace;background:#0a0a0b;border:1px solid var(--border);
   border-bottom-width:2px;border-radius:4px;padding:0 3px;margin-left:3px;color:var(--mut)}
+.kbd.lg{font-size:11px;padding:2px 6px;margin:0;color:var(--text)}
+
+.modal-scrim{position:fixed;inset:0;background:rgba(0,0,0,.66);backdrop-filter:blur(3px);
+  display:grid;place-items:center;z-index:50;padding:24px;animation:fade .14s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.modal{width:560px;max-width:100%;max-height:86vh;display:flex;flex-direction:column;
+  background:var(--panel);border:1px solid var(--border);border-radius:14px;
+  box-shadow:0 30px 80px rgba(0,0,0,.6);overflow:hidden}
+.modal.wide{width:680px}
+.modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:13px 16px;border-bottom:1px solid var(--border);flex:0 0 auto}
+.modal-body{padding:16px;overflow:auto}
+
+.sc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 28px}
+@media (max-width:560px){.sc-grid{grid-template-columns:1fr}}
+.sc-sec{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);
+  margin:12px 0 5px;padding-bottom:4px;border-bottom:1px solid var(--borderSoft,#1f1f23)}
+.sc-sec:first-child{margin-top:0}
+.sc-row{display:flex;align-items:center;gap:10px;padding:4px 0}
+.sc-keys{flex:0 0 auto;min-width:128px}
+.sc-desc{font-size:12.5px;color:var(--text)}
+.sc-mouse{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);
+  font-size:12px;color:var(--mut);line-height:1.6}
+.sc-mouse b{color:var(--text);font-weight:600}
+
+.code-block{margin:0;background:#0a0a0b;border:1px solid var(--border);border-radius:8px;
+  padding:12px;max-height:46vh;overflow:auto;font:11px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color:#c4c4ca;white-space:pre;tab-size:4}
 @keyframes flash{0%{background:var(--ok);color:#06140d}60%{background:var(--okDim,#123026)}100%{background:transparent}}
 .tok-edit{font-size:16px;padding:1px 5px;border-radius:5px;background:#000;border:1px solid var(--accent);
   color:var(--text);outline:none}
