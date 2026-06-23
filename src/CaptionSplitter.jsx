@@ -66,6 +66,13 @@ const STOP = {};
   .split(" ").forEach((w) => (STOP[w] = 1));
 const MAG = {};
 "trillion billion million thousand hundred percent k m b grand".split(" ").forEach((w) => (MAG[w] = 1));
+// discourse / filler / auxiliary words: real words, but almost never the punch
+// word a caption should emphasise. Down-weighted so content words win.
+const DOWN = {};
+("because so just then when while used gonna wanna really very actually basically literally " +
+ "maybe well also even still kind sort like okay yeah right look mean know guys " +
+ "cant dont wont isnt didnt doesnt couldnt wouldnt shouldnt wasnt arent werent havent")
+  .split(" ").forEach((w) => (DOWN[w] = 1));
 
 const core = (t) => String(t == null ? "" : t).replace(/^["“‘(]+/, "").replace(/["”’).,!?;:]+$/, "");
 const endsSentence = (t) => /[.!?]+["”’)]?$/.test(t);
@@ -89,26 +96,55 @@ const clock = (s) => {
   return m + ":" + pad(r, 2);
 };
 
+// ----------------------------------------------------- prosody / breaths ---
+// Spoken emphasis leaves fingerprints in the timing: emphasised words are drawn
+// out (longer per character) and are often set off by a pause. This computes a
+// per-word "emph" score (~0..25) from word durations and the gaps around them,
+// stored on each word atom so the highlight picker can use it.
+function computeEmphasis(words) {
+  if (!words || !words.length) return words || [];
+  const dpcs = [];
+  for (const w of words) {
+    const len = Math.max(1, core(w.text).length);
+    const dur = Math.max(0, (w.end || 0) - (w.start || 0));
+    if (dur > 0 && !STOP[core(w.text).toLowerCase()]) dpcs.push(dur / len);
+  }
+  dpcs.sort((a, b) => a - b);
+  const base = dpcs.length ? dpcs[Math.floor(dpcs.length / 2)] : 0.06;
+  const PAUSE = 0.22;
+  return words.map((w, i) => {
+    const len = Math.max(1, core(w.text).length);
+    const dur = Math.max(0, (w.end || 0) - (w.start || 0));
+    const durTerm = base > 0 ? Math.max(0, Math.min(1, dur / len / base - 1)) : 0;
+    const prev = i > 0 ? words[i - 1] : null, next = i < words.length - 1 ? words[i + 1] : null;
+    const gapAfter = next ? Math.max(0, (next.start || 0) - (w.end || 0)) : PAUSE;
+    const gapBefore = prev ? Math.max(0, (w.start || 0) - (prev.end || 0)) : 0;
+    const emph = 12 * durTerm + 9 * Math.min(1, gapAfter / PAUSE) + 4 * Math.min(1, gapBefore / PAUSE);
+    return { ...w, emph: Math.round(emph * 10) / 10 };
+  });
+}
+
 // ------------------------------------------------------------- highlight ---
 function scoreWord(w, sentenceStart) {
   const tok = core(w.text), low = tok.toLowerCase();
   let sc = 0;
   if (/[\d$£€%]/.test(tok)) sc += 100;
-  else if (/^[A-Z]/.test(tok) && tok.length > 1 && !sentenceStart) sc += 50;
+  else if (/^[A-Z]/.test(tok) && tok.length > 1 && !sentenceStart) sc += 45;
   if (!STOP[low]) sc += 10;
+  if (DOWN[low] || DOWN[low.replace(/['’‘]/g, "")]) sc -= 14;
   sc += Math.min(tok.length, 12);
   if (tok.length > 12) sc -= 5;
+  sc += (w.emph || 0);                 // prosodic emphasis from breath analysis
   return sc;
 }
-function pickHighlight(span, flags, interiorMargin) {
-  let best = 0, bestSc = -1, bBest = 0, bSc = -1;
-  for (let i = 0; i < span.length; i++) {
-    const sc = scoreWord(span[i], flags[i]);
-    if (sc > bestSc) { bestSc = sc; best = i; }
-    if (i === 0 || i === span.length - 1) if (sc > bSc) { bSc = sc; bBest = i; }
-  }
-  const interior = best !== 0 && best !== span.length - 1;
-  if (interior && bestSc - bSc < interiorMargin) best = bBest;
+function pickHighlight(span, flags) {
+  const scores = span.map((w, i) => scoreWord(w, flags[i]));
+  let best = 0;
+  for (let i = 1; i < span.length; i++) if (scores[i] > scores[best]) best = i;
+  // on a genuine tie, prefer the phrase-final word (cleaner 2-row, matches the
+  // way emphasis usually lands at the end of a beat)
+  const last = span.length - 1;
+  if (best !== last && scores[last] === scores[best]) best = last;
   let hj = best;
   if (best + 1 < span.length) {
     const here = core(span[best].text), next = core(span[best + 1].text).toLowerCase();
@@ -141,7 +177,7 @@ function flattenTranscript(raw) {
     const prev = k > 0 ? words[k - 1] : null;
     words[k].sentenceStart = !prev || prev.eos || endsSentence(prev.text);
   }
-  return words;
+  return computeEmphasis(words);
 }
 
 function rePickFor(wordIds, wordById, interiorMargin) {  const span = wordIds.map((id) => wordById[id]);
@@ -240,11 +276,25 @@ function seedCards(words, cfg) {
 
   const cards = [];
   let cid = 1;
+  const emit = (spanIdx, L) => cards.push({ id: cid++, wordIds: spanIdx.map((k) => words[k].id), hlFrom: L.hi, hlTo: L.hj });
+  // the small-line char limit is the real bound; allow generous word counts so a
+  // whole breath-phrase can stay together (8-word safety cap)
+  const CAP = Math.max(cfg.cardMaxWords, 8);
+
   for (const breath of breaths) {
+    // 1) keep the whole breath-phrase as ONE card when it fits as a clean
+    //    caption (2 rows preferred, 3 if a centred highlight needs it). This is
+    //    what keeps "it can't be that good" and "from 196 to 174" intact.
+    if (breath.length <= CAP) {
+      const L = layoutOf(breath);
+      if (L.fits && L.rows >= 2) { emit(breath, L); continue; }
+    }
+    // 2) otherwise the phrase is too long for one card — pack it greedily,
+    //    2-row-first, bounded by the character limit rather than a word count.
     let i = 0;
     while (i < breath.length) {
       const rem = breath.length - i;
-      const maxSize = Math.min(cfg.cardMaxWords, rem);
+      const maxSize = Math.min(CAP, rem);
       const lo = rem === 1 ? 1 : 2;            // never start a card as a lone word
       let best = null;
       for (let size = lo; size <= maxSize; size++) {
@@ -252,7 +302,7 @@ function seedCards(words, cfg) {
         best = better(best, { ...layoutOf(spanIdx), size, spanIdx });
       }
       if (!best) { const spanIdx = breath.slice(i, i + 1); best = { ...layoutOf(spanIdx), size: 1, spanIdx }; }
-      cards.push({ id: cid++, wordIds: best.spanIdx.map((k) => words[k].id), hlFrom: best.hi, hlTo: best.hj });
+      emit(best.spanIdx, best);
       i += best.size;
     }
   }
@@ -799,6 +849,7 @@ export default function CaptionSplitter() {
 
   const fileInput = useRef(null);
   const audioInput = useRef(null);
+  const scriptInput = useRef(null);
   const tlScroll = useRef(null);
   const audio = useAudio();
 
@@ -918,7 +969,7 @@ export default function CaptionSplitter() {
     catch (e) { setError("That file isn't valid JSON. " + e.message); return; }
     try {
       if (raw && Array.isArray(raw.words) && Array.isArray(raw.cards)) {
-        resetDoc(raw.words, raw.cards);
+        resetDoc(computeEmphasis(raw.words), raw.cards);
       } else if (raw && Array.isArray(raw.segments)) {
         const w = flattenTranscript(raw);
         if (!w.length) { setError("No word-level timing found. Export the transcript with words enabled."); return; }
@@ -1126,7 +1177,7 @@ export default function CaptionSplitter() {
 
   // ---- exports ----
   const exportCaptions = () => download((fileName.replace(/\.json$/i, "") || "captions") + "_captions.json", buildCaptionsJSON(cards, derived));
-  const exportTable = () => download((fileName.replace(/\.json$/i, "") || "captions") + "_wordtable.json", { meta: { tool: "CaptionSplitter", version: 2.4, cfg }, words, cards });
+  const exportTable = () => download((fileName.replace(/\.json$/i, "") || "captions") + "_wordtable.json", { meta: { tool: "CaptionSplitter", version: 2.5, cfg }, words, cards });
 
   // ---- fit timeline to window ----
   const fitTimeline = useCallback(() => {
@@ -1197,7 +1248,7 @@ export default function CaptionSplitter() {
             style={{ borderRadius: 7, display: "block", flex: "0 0 auto" }} />
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 13, fontWeight: 650, letterSpacing: "-0.01em" }}>
-              Caption Splitter <span className="mono" style={{ fontSize: 9.5, color: C.mut2, fontWeight: 600, verticalAlign: "middle" }}>V2.4</span>
+              Caption Splitter <span className="mono" style={{ fontSize: 9.5, color: C.mut2, fontWeight: 600, verticalAlign: "middle" }}>V2.5</span>
             </div>
             <div className="mono" style={{ fontSize: 10.5, color: C.mut2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {loaded ? fileName : "no transcript loaded"}
@@ -1341,8 +1392,22 @@ export default function CaptionSplitter() {
             <p style={{ fontSize: 11.5, color: C.mut, lineHeight: 1.5, margin: "0 0 10px" }}>
               Paste the script you actually wrote — it's the source of truth for <em>spelling</em>; the transcript stays the source of truth for <em>timing</em>. <strong>Auto-fix spellings</strong> corrects every close variant at once; the dot on each row shows whether it's a likely typo (<span style={{ color: C.ok }}>●</span>) or a genuinely different word (<span style={{ color: C.warn }}>●</span>) to judge yourself.
             </p>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, margin: "0 0 6px" }}>
+              <span style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.04em", color: C.mut }}>Script</span>
+              <button className="btn btn-sm btn-ghost" onClick={() => scriptInput.current && scriptInput.current.click()}>
+                <Upload size={12} /> Load .txt
+              </button>
+              <input ref={scriptInput} type="file" accept=".txt,text/plain,.md,.srt,.vtt" style={{ display: "none" }}
+                onChange={(e) => {
+                  const file = e.target.files[0]; e.target.value = "";
+                  if (!file) return;
+                  const r = new FileReader();
+                  r.onload = () => setScript(String(r.result || ""));
+                  r.readAsText(file);
+                }} />
+            </div>
             <textarea className="ta" value={script} onChange={(e) => setScript(e.target.value)}
-              placeholder="Paste the script here…" spellCheck={false} />
+              placeholder="Paste the script here, or Load .txt…" spellCheck={false} />
 
             {alignment && (
               <div style={{ marginTop: 14 }}>
