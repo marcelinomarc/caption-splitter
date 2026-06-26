@@ -692,6 +692,7 @@ function activeCaptionIdx(derived, t) {
 
 function VideoStage({ elRef, url, name, kind, show, time, derived, onHide, pos, setPos, tlOffset }) {
   const dragRef = useRef(null);
+  const [vh, setVh] = useState(1920); // intrinsic video height; AE sizes (160/55) are relative to this
   const live = kind === "video" && show && !!url;
 
   const onPointerDown = (e) => {
@@ -718,10 +719,12 @@ function VideoStage({ elRef, url, name, kind, show, time, derived, onHide, pos, 
     : { right: 18, bottom: 18 + (tlOffset || 0), left: "auto", top: "auto" };
 
   const d = live && derived.length ? (activeCaptionIdx(derived, time) >= 0 ? derived[activeCaptionIdx(derived, time)] : null) : null;
-  // per-row reveal mirrors AE: each row appears at its own in-point, all clear together
-  const showTop = d && d.top.length && time >= d.topIn;
-  const showHl = d && time >= d.hlIn;
-  const showBot = d && d.bot.length && time >= d.botIn;
+  // per-row reveal mirrors AE: each row appears at its own in-point, all clear together.
+  // NB: coerce to real booleans — d.top.length is 0 (a number), and {0 && <jsx/>}
+  // would render a stray "0" in the overlay.
+  const showTop = !!(d && d.top.length && time >= d.topIn);
+  const showHl = !!(d && time >= d.hlIn);
+  const showBot = !!(d && d.bot.length && time >= d.botIn);
   const topTxt = d ? d.top.map((w) => core(w.text)).join(" ") : "";
   const hlTxt = d ? d.hl.map((w) => core(w.text)).join(" ") : "";
   const botTxt = d ? d.bot.map((w) => core(w.text)).join(" ") : "";
@@ -733,9 +736,12 @@ function VideoStage({ elRef, url, name, kind, show, time, derived, onHide, pos, 
         <span className="vstage-name mono">{name || "video"}</span>
         <button className="icon-btn sm" title="Hide video (audio keeps playing)" onPointerDown={(e) => e.stopPropagation()} onClick={onHide}><X size={13} /></button>
       </div>
-      <div className="vstage-screen">
-        <video ref={elRef} src={url || undefined} playsInline preload="auto" className="vstage-video" />
-        {/* caption overlay — only the live rows, centred like the AE default anchor */}
+      <div className="vstage-screen" style={{ ["--ih"]: vh }}>
+        <video ref={elRef} src={url || undefined} playsInline preload="auto" className="vstage-video"
+          onLoadedMetadata={(e) => { const h = e.currentTarget.videoHeight; if (h) setVh(h); }} />
+        {/* caption overlay — only the live rows, centred like the AE default anchor.
+            Font sizes are the real AE px (160/55) scaled to the rendered frame, so
+            this is true to what AE will build (Europa Grotesk SH / Inter Light). */}
         <div className="vstage-cap">
           {showTop && <div className="vc-sm">{topTxt}</div>}
           {showHl && <div className="vc-hl">{hlTxt}</div>}
@@ -1525,7 +1531,7 @@ export default function CaptionSplitter() {
             style={{ borderRadius: 7, display: "block", flex: "0 0 auto" }} />
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 13, fontWeight: 650, letterSpacing: "-0.01em" }}>
-              Caption Splitter <span className="mono" style={{ fontSize: 9.5, color: C.mut2, fontWeight: 600, verticalAlign: "middle" }}>V3.2</span>
+              Caption Splitter <span className="mono" style={{ fontSize: 9.5, color: C.mut2, fontWeight: 600, verticalAlign: "middle" }}>V3.2.1</span>
             </div>
             <div className="mono" style={{ fontSize: 10.5, color: C.mut2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {loaded ? fileName : "no transcript loaded"}
@@ -2167,6 +2173,7 @@ const qcClean = { display: "flex", alignItems: "center", gap: 8, fontSize: 12.5,
 const subRow = { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "7px 0", borderBottom: "1px solid " + C.borderSoft };
 
 const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
 .cap-root *{box-sizing:border-box}
 .cap-root .mono{font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
 .cap-root ::-webkit-scrollbar{width:10px;height:10px}
@@ -2206,18 +2213,22 @@ const CSS = `
 .tok-located{box-shadow:0 0 0 2px var(--accent),0 0 0 5px rgba(229,72,77,.25)!important;background:var(--accentDim)!important;color:var(--text)!important;animation:locatePulse 1.1s ease}
 .tok-offscript{text-decoration:underline dashed var(--warn);text-decoration-thickness:2px;text-underline-offset:3px}
 .tok-offscript:hover{text-decoration-color:#f0c14b}
-.vstage{z-index:50;width:min(46vw,460px);background:#000;border:1px solid var(--border);border-radius:10px;
+.vstage{z-index:50;width:clamp(220px,24vw,300px);background:#000;border:1px solid var(--border);border-radius:10px;
   box-shadow:0 18px 50px rgba(0,0,0,.6);overflow:hidden;display:flex;flex-direction:column}
 .vstage-bar{display:flex;align-items:center;gap:7px;padding:5px 7px;background:var(--panel);border-bottom:1px solid var(--border);cursor:grab;user-select:none}
 .vstage-bar:active{cursor:grabbing}
 .vstage-grip{color:var(--mut2);display:grid;place-items:center}
 .vstage-name{flex:1;min-width:0;font-size:10.5px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.vstage-screen{position:relative;width:100%;aspect-ratio:16/9;background:#000;display:grid;place-items:center}
-.vstage-video{width:100%;height:100%;object-fit:contain;display:block;background:#000}
+.vstage-screen{position:relative;width:100%;background:#000;container-type:size}
+.vstage-video{width:100%;height:auto;display:block;background:#000}
 .vstage-cap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:2px;padding:0 6%;pointer-events:none;text-align:center;text-shadow:0 2px 8px rgba(0,0,0,.85)}
-.vc-sm{font-size:clamp(11px,2.4vw,17px);line-height:1.15;color:#fff;font-weight:500}
-.vc-hl{font-size:clamp(17px,4vw,30px);line-height:1.1;color:#fff;font-weight:750;letter-spacing:-0.01em}
+  gap:0.4cqh;padding:0 5%;pointer-events:none;text-align:center;text-shadow:0 0.25cqh 1cqh rgba(0,0,0,.85)}
+/* AE sizes are px in a comp --ih tall (1080x1920 short-form by default). 1cqh = 1% of
+   the rendered frame height, so SIZE/--ih*100 cqh reproduces the exact AE proportion. */
+.vc-sm{font-family:'Inter','Inter Light',-apple-system,sans-serif;font-weight:300;color:#fff;line-height:1.12;
+  font-size:calc(55 / var(--ih, 1920) * 100 * 1cqh)}
+.vc-hl{font-family:'Europa Grotesk SH','Helvetica Neue',Arial,sans-serif;font-weight:400;color:#fff;line-height:1.05;
+  letter-spacing:-0.01em;font-size:calc(160 / var(--ih, 1920) * 100 * 1cqh)}
 .proj-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;
   border:1px solid var(--border);border-radius:8px;background:var(--panel2)}
 .proj-row:hover{border-color:#34343b}
@@ -2280,9 +2291,11 @@ const CSS = `
 
 .cap-preview{flex:0 0 auto;width:208px;min-height:74px;border:1px solid var(--border);border-radius:9px;
   background:#070708;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
-  padding:12px 10px;text-align:center;overflow:hidden}
-.pv-hl{font-size:18px;font-weight:700;color:#fff;letter-spacing:-.01em;line-height:1.1;word-break:break-word}
-.pv-sm{font-size:11px;color:#c4c4ca;line-height:1.15;word-break:break-word}
+  padding:12px 10px;text-align:center;overflow:hidden;--pv-hl:28px}
+.pv-hl{font-family:'Europa Grotesk SH','Helvetica Neue',Arial,sans-serif;font-weight:400;color:#fff;
+  letter-spacing:-.01em;line-height:1.05;word-break:break-word;font-size:var(--pv-hl)}
+.pv-sm{font-family:'Inter','Inter Light',-apple-system,sans-serif;font-weight:300;color:#dcdce2;
+  line-height:1.12;word-break:break-word;font-size:calc(var(--pv-hl) * 55 / 160)}
 
 .dropzone{display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;
   border:1.5px dashed var(--border);border-radius:16px;padding:46px 40px;background:var(--panel);
