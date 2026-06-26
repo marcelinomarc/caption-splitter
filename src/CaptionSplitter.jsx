@@ -31,6 +31,8 @@ import {
   AlertTriangle, Check, X, RotateCcw, Sliders, Type, Clock, Layers, ListChecks,
   Eye, Play, Pause, Link2, Music, ZoomIn, ZoomOut, Maximize2, Volume2,
   Undo2, Redo2, Keyboard, FileCode2, Copy, ClipboardCheck,
+  Eraser, SplitSquareHorizontal, ScanLine,
+  GripVertical, Video, Save, FolderOpen, Trash2, History, HardDriveDownload,
 } from "lucide-react";
 
 // ---------------------------------------------------------------- palette ---
@@ -49,7 +51,7 @@ const LOGO_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEUAAABICAYAAACg
 // The downstream After Effects script (CaptionBuilder.jsx) that consumes the
 // exported captions JSON. Embedded as base64 and decoded (UTF-8 safe) so users
 // can copy or download it straight from the app.
-const CAPTION_BUILDER_B64 = "Ly8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQ0KLy8gQ2FwdGlvbkJ1aWxkZXIuanN4ICDigJQgIEFmdGVyIEVmZmVjdHMgY2FwdGlvbiBidWlsZGVyDQovLyBQZXItcm93LXRpbWVkIHN0YWNrZWQgY2FwdGlvbnMgZnJvbSBhIGNhcHRpb25zIEpTT04uDQovLyBFUzMgLyBFeHRlbmRTY3JpcHQuIE9wZW4gYSBjb21wLCBydW4sIHBpY2sgdGhlIGNhcHRpb25zIEpTT04uDQovLw0KLy8gPj4+IEZPTlQgU0VUVVAgKGRvIHRoaXMgb25jZSwgZml4ZXMgYWxsIHRoZSBzdWJzdGl0dXRpb24gcHJvYmxlbXMpIDw8PA0KLy8gTmFtZS1iYXNlZCBmb250IHNldHRpbmcgaXMgdW5yZWxpYWJsZSBvbiB0aGlzIEFFLCBzbyB0aGUgc2NyaXB0IGNvcGllcyBmb250cw0KLy8gZnJvbSB0d28gcmVmZXJlbmNlIGxheWVycyB5b3UgbWFrZSBieSBoYW5kOg0KLy8gICAxLiBNYWtlIGEgdGV4dCBsYXllciwgc2V0IGl0IHRvIHlvdXIgSElHSExJR0hUIGZvbnQgaW4gdGhlIENoYXJhY3RlciBwYW5lbA0KLy8gICAgICAoRXVyb3BhIEdyb3Rlc2sgU0gpLCBuYW1lIGl0IGV4YWN0bHkgIFJFRl9ITA0KLy8gICAyLiBNYWtlIGEgdGV4dCBsYXllciwgc2V0IGl0IHRvIHlvdXIgU01BTEwgZm9udCAoSW50ZXIsIExpZ2h0KSwNCi8vICAgICAgbmFtZSBpdCBleGFjdGx5ICBSRUZfU00NCi8vICAgMy4gTGVhdmUgYm90aCBpbiB0aGUgY29tcCBhbmQgcnVuLiBUaGUgc2NyaXB0IGR1cGxpY2F0ZXMgdGhlbSBwZXIgcm93IGFuZA0KLy8gICAgICBvbmx5IGNoYW5nZXMgdGhlIHRleHQgKyBzaXplIC0+IHRoZSBmb250IGlzIG5ldmVyIHJlLXJlc29sdmVkLCBzbyBpdA0KLy8gICAgICBjYW4ndCBkcmlmdCB0byBUYWN0aWMgLyBJbnRlciBSZWd1bGFyLiBUaGUgUkVGIGxheWVycyBhcmUgYXV0by1kaXNhYmxlZA0KLy8gICAgICBhZnRlciB0aGUgYnVpbGQgKGRlbGV0ZSB0aGVtIHdoZW5ldmVyKS4NCi8vIElmIGEgUkVGIGxheWVyIGlzIG1pc3NpbmcgaXQgZmFsbHMgYmFjayB0byBzZXR0aW5nIHRoZSBmb250IGJ5IG5hbWUgKGZsYWt5KS4NCi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NCg0KLy8gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSBMQVlPVVQgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KdmFyIFNJWkVfSEwgICA9IDE2MDsNCnZhciBTSVpFX1NNICAgPSA1NTsNCnZhciBST1dfR0FQICAgPSAyMDsNCnZhciBZX0FOQ0hPUiAgPSAwLjU7ICAgICAgICAgIC8vIDAuNSA9IGNlbnRyZSwgMC43OCA9IGxvd2VyLXRoaXJkDQoNCi8vIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gRk9OVFMgKHJlZmVyZW5jZSBsYXllcnMpIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCnZhciBGT05UX0hMX1JFRiA9ICJSRUZfSEwiOyAgIC8vIHRleHQgbGF5ZXIgc2V0IHRvIHRoZSBoaWdobGlnaHQgZm9udCBieSBoYW5kDQp2YXIgRk9OVF9TTV9SRUYgPSAiUkVGX1NNIjsgICAvLyB0ZXh0IGxheWVyIHNldCB0byB0aGUgc21hbGwgZm9udCAoSW50ZXIgTGlnaHQpIGJ5IGhhbmQNCg0KLy8gRmFsbGJhY2sgT05MWSBpZiBhIFJFRiBsYXllciBhYm92ZSBpcyBub3QgZm91bmQgKG5hbWUtYmFzZWQsIG1heSBzdWJzdGl0dXRlKToNCnZhciBGT05UX0hMICAgPSB7IGZhbWlseTogIkV1cm9wYSBHcm90ZXNrIFNIIiwgc3R5bGU6ICIiIH07DQp2YXIgRk9OVF9TTSAgID0geyBmYW1pbHk6ICJJbnRlciIsICAgICAgICAgICAgIHN0eWxlOiAiTGlnaHQiIH07DQoNCi8vIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gQ0FTSU5HIC8gQ09MT1VSIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCnZhciBITF9DQVNFICAgPSAic2VudGVuY2UiOyAgIC8vICJzZW50ZW5jZSIgfCAibG93ZXIiIHwgInVwcGVyIiB8ICJ0aXRsZSINCnZhciBTTV9DQVNFICAgPSAiYXNpcyI7ICAgICAgIC8vICJhc2lzIiB8ICJsb3dlciIgfCAidXBwZXIiDQp2YXIgQ09MT1JfSEwgID0gWzEsIDEsIDFdOw0KdmFyIENPTE9SX1NNICA9IFsxLCAxLCAxXTsNCg0KLy8gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSBUSU1JTkcgKGZsYXQtc2NoZW1hIGZhbGxiYWNrKSAtLS0tLS0tLS0tLS0tLS0tLQ0KLy8gUGVyLXJvdyBKU09OIChvYmplY3RzIHdpdGggaW4vb3V0KSBpcyBhcHBsaWVkIHZlcmJhdGltLiBUaGVzZSBvbmx5IGFwcGx5IHRvDQovLyB0aGUgT0xEIGZsYXQgc2NoZW1hIHdoZXJlIGhpZ2hsaWdodCBpcyBhIHBsYWluIHN0cmluZy4NCnZhciBIT0xEX1RPX05FWFQgPSBmYWxzZTsNCnZhciBUQUlMX1BBRCAgICAgPSAwLjMwOw0KdmFyIE1BWF9IT0xEICAgICA9IDA7DQoNCnZhciBMT0dfRk9OVFMgPSBmYWxzZTsgICAgICAgIC8vIHRydWU6IGJ1aWxkIGNhcmQgMSBvbmx5LCBhbGVydCByZXNvbHZlZCBmb250cywgc3RvcC4NCi8vIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCg0KDQooZnVuY3Rpb24gKCkgew0KICAgIHZhciBjb21wID0gYXBwLnByb2plY3QuYWN0aXZlSXRlbTsNCiAgICBpZiAoIShjb21wICYmIGNvbXAgaW5zdGFuY2VvZiBDb21wSXRlbSkpIHsgYWxlcnQoIk9wZW4gYSBjb21wIGZpcnN0LiIpOyByZXR1cm47IH0NCg0KICAgIHZhciBmID0gRmlsZS5vcGVuRGlhbG9nKCJTZWxlY3QgY2FwdGlvbnMgSlNPTiIsICIqLmpzb24iKTsNCiAgICBpZiAoIWYpIHsgcmV0dXJuOyB9DQogICAgZi5lbmNvZGluZyA9ICJVVEYtOCI7DQogICAgZi5vcGVuKCJyIik7IHZhciB0eHQgPSBmLnJlYWQoKTsgZi5jbG9zZSgpOw0KICAgIGlmICh0eHQuY2hhckNvZGVBdCgwKSA9PT0gMHhGRUZGKSB0eHQgPSB0eHQuc3Vic3RyaW5nKDEpOw0KDQogICAgdmFyIGNhcmRzOw0KICAgIHRyeSB7IGNhcmRzID0gZXZhbCgiKCIgKyB0eHQgKyAiKSIpOyB9DQogICAgY2F0Y2ggKGUpIHsgYWxlcnQoIkNvdWxkbid0IHBhcnNlIEpTT046XG4iICsgZS50b1N0cmluZygpKTsgcmV0dXJuOyB9DQogICAgaWYgKCEoY2FyZHMgJiYgY2FyZHMubGVuZ3RoKSkgeyBhbGVydCgiTm8gY2FyZHMgaW4gSlNPTi4iKTsgcmV0dXJuOyB9DQoNCiAgICBmdW5jdGlvbiB0YzJzZWModGMpIHsNCiAgICAgICAgdmFyIHAgPSBTdHJpbmcodGMpLnNwbGl0KCIsIik7DQogICAgICAgIHZhciBobXMgPSBwWzBdLnNwbGl0KCI6Iik7DQogICAgICAgIHZhciBtcyA9IChwLmxlbmd0aCA+IDEpID8gcGFyc2VJbnQocFsxXSwgMTApIDogMDsNCiAgICAgICAgcmV0dXJuIHBhcnNlSW50KGhtc1swXSwgMTApICogMzYwMCArIHBhcnNlSW50KGhtc1sxXSwgMTApICogNjAgKyBwYXJzZUludChobXNbMl0sIDEwKSArIG1zIC8gMTAwMDsNCiAgICB9DQogICAgZnVuY3Rpb24gaGFzKHYpIHsgcmV0dXJuIHYgIT0gbnVsbCAmJiBTdHJpbmcodikgIT09ICIiOyB9DQogICAgZnVuY3Rpb24gcmVjYXNlSEwodywgbGVhZHMpIHsNCiAgICAgICAgaWYgKEhMX0NBU0UgPT09ICJ1cHBlciIpIHJldHVybiB3LnRvVXBwZXJDYXNlKCk7DQogICAgICAgIGlmIChITF9DQVNFID09PSAibG93ZXIiKSByZXR1cm4gdy50b0xvd2VyQ2FzZSgpOw0KICAgICAgICBpZiAoSExfQ0FTRSA9PT0gInRpdGxlIikgcmV0dXJuIHcudG9Mb3dlckNhc2UoKS5yZXBsYWNlKC9cYlthLXpdL2csIGZ1bmN0aW9uIChjKSB7IHJldHVybiBjLnRvVXBwZXJDYXNlKCk7IH0pOw0KICAgICAgICB2YXIgcyA9IHcudG9Mb3dlckNhc2UoKTsNCiAgICAgICAgaWYgKGxlYWRzICYmIHMubGVuZ3RoKSBzID0gcy5jaGFyQXQoMCkudG9VcHBlckNhc2UoKSArIHMuc3Vic3RyaW5nKDEpOw0KICAgICAgICByZXR1cm4gczsNCiAgICB9DQogICAgZnVuY3Rpb24gcmVjYXNlU00odykgew0KICAgICAgICBpZiAoU01fQ0FTRSA9PT0gImxvd2VyIikgcmV0dXJuIHcudG9Mb3dlckNhc2UoKTsNCiAgICAgICAgaWYgKFNNX0NBU0UgPT09ICJ1cHBlciIpIHJldHVybiB3LnRvVXBwZXJDYXNlKCk7DQogICAgICAgIHJldHVybiB3Ow0KICAgIH0NCiAgICBmdW5jdGlvbiBnZXRSZWZMYXllcihuYW1lKSB7DQogICAgICAgIGlmICghbmFtZSkgcmV0dXJuIG51bGw7DQogICAgICAgIGZvciAodmFyIGkgPSAxOyBpIDw9IGNvbXAubnVtTGF5ZXJzOyBpKyspIHsNCiAgICAgICAgICAgIHZhciBMID0gY29tcC5sYXllcihpKTsNCiAgICAgICAgICAgIGlmIChMLm5hbWUgPT09IG5hbWUgJiYgTC5wcm9wZXJ0eSgiQURCRSBUZXh0IFByb3BlcnRpZXMiKSkgcmV0dXJuIEw7DQogICAgICAgIH0NCiAgICAgICAgcmV0dXJuIG51bGw7DQogICAgfQ0KICAgIHZhciByZWZITCA9IGdldFJlZkxheWVyKEZPTlRfSExfUkVGKTsNCiAgICB2YXIgcmVmU00gPSBnZXRSZWZMYXllcihGT05UX1NNX1JFRik7DQogICAgdmFyIHVzZWRSZWZzID0gW107DQogICAgaWYgKHJlZkhMKSB1c2VkUmVmcy5wdXNoKHJlZkhMKTsNCiAgICBpZiAocmVmU00pIHVzZWRSZWZzLnB1c2gocmVmU00pOw0KDQogICAgZnVuY3Rpb24gcGFyc2VGaWVsZChmaWVsZCwgZmJJbiwgZmJPdXQpIHsNCiAgICAgICAgaWYgKGZpZWxkID09IG51bGwpIHJldHVybiBudWxsOw0KICAgICAgICBpZiAodHlwZW9mIGZpZWxkID09PSAic3RyaW5nIikgew0KICAgICAgICAgICAgaWYgKGZpZWxkID09PSAiIikgcmV0dXJuIG51bGw7DQogICAgICAgICAgICByZXR1cm4geyB0ZXh0OiBmaWVsZCwgaW5TZWM6IGZiSW4sIG91dFNlYzogZmJPdXQgfTsNCiAgICAgICAgfQ0KICAgICAgICBpZiAoIWhhcyhmaWVsZC50ZXh0KSkgcmV0dXJuIG51bGw7DQogICAgICAgIHJldHVybiB7DQogICAgICAgICAgICB0ZXh0OiBmaWVsZC50ZXh0LA0KICAgICAgICAgICAgaW5TZWM6ICBoYXMoZmllbGRbImluIl0pICA/IHRjMnNlYyhmaWVsZFsiaW4iXSkgIDogZmJJbiwNCiAgICAgICAgICAgIG91dFNlYzogaGFzKGZpZWxkWyJvdXQiXSkgPyB0YzJzZWMoZmllbGRbIm91dCJdKSA6IGZiT3V0DQogICAgICAgIH07DQogICAgfQ0KDQogICAgLy8gQnVpbGQgYSBzdHlsZWQgdGV4dCBsYXllci4gSWYgcmVmTGF5ZXIgaXMgZ2l2ZW4sIERVUExJQ0FURSBpdCAoZm9udCBjb3BpZWQNCiAgICAvLyB2ZXJiYXRpbSwgbmV2ZXIgcmUtcmVzb2x2ZWQpLiBFbHNlIGNyZWF0ZSBmcmVzaCBhbmQgc2V0IGZvbnQgYnkgbmFtZStzdHlsZSwNCiAgICAvLyB2ZXJpZnlpbmcgQk9USCBmYW1pbHkgYW5kIHN0eWxlIG9uIHJlYWRiYWNrLg0KICAgIGZ1bmN0aW9uIG1ha2VSb3coc3RyLCBzaXplLCBjb2xvciwgZm9udFNwZWMsIHJlZkxheWVyLCBuYW1lLCBtZWFzdXJlVCkgew0KICAgICAgICB2YXIgdGwsIHRwLCBkb2MsIGFwcGxpZWQsIGdvdDsNCg0KICAgICAgICBpZiAocmVmTGF5ZXIpIHsNCiAgICAgICAgICAgIHRsID0gcmVmTGF5ZXIuZHVwbGljYXRlKCk7DQogICAgICAgICAgICB0bC5lbmFibGVkID0gdHJ1ZTsNCiAgICAgICAgICAgIHRwID0gdGwucHJvcGVydHkoIkFEQkUgVGV4dCBQcm9wZXJ0aWVzIikucHJvcGVydHkoIkFEQkUgVGV4dCBEb2N1bWVudCIpOw0KICAgICAgICAgICAgZG9jID0gdHAudmFsdWU7DQogICAgICAgICAgICBkb2MudGV4dCA9IHN0cjsNCiAgICAgICAgICAgIGRvYy5mb250U2l6ZSA9IHNpemU7DQogICAgICAgICAgICBkb2MuYXBwbHlGaWxsID0gdHJ1ZTsNCiAgICAgICAgICAgIGRvYy5maWxsQ29sb3IgPSBjb2xvcjsNCiAgICAgICAgICAgIGRvYy5qdXN0aWZpY2F0aW9uID0gUGFyYWdyYXBoSnVzdGlmaWNhdGlvbi5DRU5URVJfSlVTVElGWTsNCiAgICAgICAgICAgIHRwLnNldFZhbHVlKGRvYyk7ICAgICAgICAgICAgICAgICAgICAgICAvLyBmb250IHVudG91Y2hlZCAtPiBzdGF5cyByZXNvbHZlZA0KICAgICAgICAgICAgZ290ID0gU3RyaW5nKHRwLnZhbHVlLmZvbnRGYW1pbHkpICsgIiAvICIgKyBTdHJpbmcodHAudmFsdWUuZm9udFN0eWxlKTsNCiAgICAgICAgICAgIGFwcGxpZWQgPSB0cnVlOw0KICAgICAgICB9IGVsc2Ugew0KICAgICAgICAgICAgdGwgPSBjb21wLmxheWVycy5hZGRUZXh0KHN0cik7DQogICAgICAgICAgICB0cCA9IHRsLnByb3BlcnR5KCJBREJFIFRleHQgUHJvcGVydGllcyIpLnByb3BlcnR5KCJBREJFIFRleHQgRG9jdW1lbnQiKTsNCiAgICAgICAgICAgIHZhciB3YW50RiA9IFN0cmluZyhmb250U3BlYy5mYW1pbHkpOw0KICAgICAgICAgICAgdmFyIHdhbnRTID0gKGZvbnRTcGVjLnN0eWxlIHx8ICIiKTsNCiAgICAgICAgICAgIGZvciAodmFyIGEgPSAwOyBhIDwgNjsgYSsrKSB7DQogICAgICAgICAgICAgICAgZG9jID0gdHAudmFsdWU7DQogICAgICAgICAgICAgICAgZG9jLmZvbnRTaXplID0gc2l6ZTsgZG9jLmFwcGx5RmlsbCA9IHRydWU7IGRvYy5maWxsQ29sb3IgPSBjb2xvcjsNCiAgICAgICAgICAgICAgICBkb2MuanVzdGlmaWNhdGlvbiA9IFBhcmFncmFwaEp1c3RpZmljYXRpb24uQ0VOVEVSX0pVU1RJRlk7DQogICAgICAgICAgICAgICAgdHJ5IHsgZG9jLmZvbnRGYW1pbHkgPSB3YW50RjsgaWYgKHdhbnRTLmxlbmd0aCkgZG9jLmZvbnRTdHlsZSA9IHdhbnRTOyB9DQogICAgICAgICAgICAgICAgY2F0Y2ggKGUpIHsgdHJ5IHsgZG9jLmZvbnQgPSB3YW50RjsgfSBjYXRjaCAoZTIpIHt9IH0NCiAgICAgICAgICAgICAgICB0cC5zZXRWYWx1ZShkb2MpOw0KICAgICAgICAgICAgICAgIHZhciBva0YgPSAoU3RyaW5nKHRwLnZhbHVlLmZvbnRGYW1pbHkpID09PSB3YW50Rik7DQogICAgICAgICAgICAgICAgdmFyIG9rUyA9ICghd2FudFMubGVuZ3RoKSB8fCAoU3RyaW5nKHRwLnZhbHVlLmZvbnRTdHlsZSkgPT09IHdhbnRTKTsNCiAgICAgICAgICAgICAgICBpZiAob2tGICYmIG9rUykgYnJlYWs7ICAgICAgICAgICAgICAvLyB2ZXJpZnkgZmFtaWx5IEFORCBzdHlsZQ0KICAgICAgICAgICAgfQ0KICAgICAgICAgICAgZ290ID0gU3RyaW5nKHRwLnZhbHVlLmZvbnRGYW1pbHkpICsgIiAvICIgKyBTdHJpbmcodHAudmFsdWUuZm9udFN0eWxlKTsNCiAgICAgICAgICAgIGFwcGxpZWQgPSAoU3RyaW5nKHRwLnZhbHVlLmZvbnRGYW1pbHkpID09PSB3YW50RikgJiYNCiAgICAgICAgICAgICAgICAgICAgICAoIXdhbnRTLmxlbmd0aCB8fCBTdHJpbmcodHAudmFsdWUuZm9udFN0eWxlKSA9PT0gd2FudFMpOw0KICAgICAgICB9DQoNCiAgICAgICAgdGwubmFtZSA9IG5hbWU7DQogICAgICAgIHZhciByID0gdGwuc291cmNlUmVjdEF0VGltZShtZWFzdXJlVCwgZmFsc2UpOw0KICAgICAgICB0bC5wcm9wZXJ0eSgiQURCRSBUcmFuc2Zvcm0gR3JvdXAiKS5wcm9wZXJ0eSgiQURCRSBBbmNob3IgUG9pbnQiKQ0KICAgICAgICAgIC5zZXRWYWx1ZShbci5sZWZ0ICsgci53aWR0aCAvIDIsIHIudG9wICsgci5oZWlnaHQgLyAyXSk7DQogICAgICAgIHJldHVybiB7IGxheWVyOiB0bCwgaDogci5oZWlnaHQsIGFwcGxpZWQ6IGFwcGxpZWQsIGdvdDogZ290IH07DQogICAgfQ0KDQogICAgdmFyIHN0YXJ0cyA9IFtdOw0KICAgIGZvciAodmFyIGkgPSAwOyBpIDwgY2FyZHMubGVuZ3RoOyBpKyspIHN0YXJ0c1tpXSA9IHRjMnNlYyhjYXJkc1tpXS5zdGFydCk7DQoNCiAgICB2YXIgY3ggPSBjb21wLndpZHRoIC8gMiwgY3kgPSBjb21wLmhlaWdodCAqIFlfQU5DSE9SOw0KICAgIGFwcC5iZWdpblVuZG9Hcm91cCgiQnVpbGQgQ2FwdGlvbnMiKTsNCiAgICB2YXIgZmFpbGVkRm9udHMgPSAwLCBsb2dMaW5lcyA9IFtdOw0KDQogICAgZm9yICh2YXIgYyA9IDA7IGMgPCBjYXJkcy5sZW5ndGg7IGMrKykgew0KICAgICAgICB2YXIgY2FyZCA9IGNhcmRzW2NdOw0KDQogICAgICAgIHZhciBmYkluID0gdGMyc2VjKGNhcmQuc3RhcnQpOw0KICAgICAgICB2YXIgZW5kU2VjID0gaGFzKGNhcmQuZW5kKSA/IHRjMnNlYyhjYXJkLmVuZCkgOiBmYkluICsgMC41Ow0KICAgICAgICB2YXIgbmV4dFN0YXJ0ID0gKGMgPCBjYXJkcy5sZW5ndGggLSAxKSA/IHN0YXJ0c1tjICsgMV0gOiBudWxsOw0KICAgICAgICB2YXIgZmJPdXQ7DQogICAgICAgIGlmIChIT0xEX1RPX05FWFQpIHsNCiAgICAgICAgICAgIGZiT3V0ID0gKG5leHRTdGFydCAhPSBudWxsKSA/IG5leHRTdGFydCA6IGVuZFNlYzsNCiAgICAgICAgICAgIGlmIChNQVhfSE9MRCA+IDApIGZiT3V0ID0gTWF0aC5taW4oZmJPdXQsIGVuZFNlYyArIE1BWF9IT0xEKTsNCiAgICAgICAgfSBlbHNlIHsNCiAgICAgICAgICAgIGZiT3V0ID0gZW5kU2VjICsgVEFJTF9QQUQ7DQogICAgICAgICAgICBpZiAobmV4dFN0YXJ0ICE9IG51bGwpIGZiT3V0ID0gTWF0aC5taW4oZmJPdXQsIG5leHRTdGFydCk7DQogICAgICAgIH0NCg0KICAgICAgICB2YXIgdG9wID0gcGFyc2VGaWVsZChjYXJkLnNtYWxsX3RvcCwgICAgZmJJbiwgZmJPdXQpOw0KICAgICAgICB2YXIgaGxyID0gcGFyc2VGaWVsZChjYXJkLmhpZ2hsaWdodCwgICAgZmJJbiwgZmJPdXQpOw0KICAgICAgICB2YXIgYm90ID0gcGFyc2VGaWVsZChjYXJkLnNtYWxsX2JvdHRvbSwgZmJJbiwgZmJPdXQpOw0KICAgICAgICB2YXIgbGVhZHMgPSAhdG9wOw0KDQogICAgICAgIHZhciByb3dzID0gW107DQogICAgICAgIGZ1bmN0aW9uIHB1c2hSb3coZGVmLCBzaXplLCBjb2xvciwgZm9udFNwZWMsIHJlZkxheWVyLCBzdWZmaXgsIGlzSEwsIGxlYWRGbGFnKSB7DQogICAgICAgICAgICBpZiAoIWRlZikgcmV0dXJuOw0KICAgICAgICAgICAgdmFyIHMgPSBpc0hMID8gcmVjYXNlSEwoZGVmLnRleHQsIGxlYWRGbGFnKSA6IHJlY2FzZVNNKGRlZi50ZXh0KTsNCiAgICAgICAgICAgIHZhciBtID0gbWFrZVJvdyhzLCBzaXplLCBjb2xvciwgZm9udFNwZWMsIHJlZkxheWVyLCAiQyIgKyBjYXJkLmlkICsgc3VmZml4LCBkZWYuaW5TZWMpOw0KICAgICAgICAgICAgbS5pblNlYyA9IGRlZi5pblNlYzsgbS5vdXRTZWMgPSBkZWYub3V0U2VjOw0KICAgICAgICAgICAgcm93cy5wdXNoKG0pOw0KICAgICAgICB9DQogICAgICAgIHB1c2hSb3codG9wLCBTSVpFX1NNLCBDT0xPUl9TTSwgRk9OVF9TTSwgcmVmU00sICJfVE9QIiwgZmFsc2UsIGZhbHNlKTsNCiAgICAgICAgcHVzaFJvdyhobHIsIFNJWkVfSEwsIENPTE9SX0hMLCBGT05UX0hMLCByZWZITCwgIl9ITCIsICB0cnVlLCAgbGVhZHMpOw0KICAgICAgICBwdXNoUm93KGJvdCwgU0laRV9TTSwgQ09MT1JfU00sIEZPTlRfU00sIHJlZlNNLCAiX0JPVCIsIGZhbHNlLCBmYWxzZSk7DQogICAgICAgIGlmICghcm93cy5sZW5ndGgpIGNvbnRpbnVlOw0KDQogICAgICAgIHZhciB0b3RhbEggPSAwOw0KICAgICAgICBmb3IgKHZhciBrID0gMDsgayA8IHJvd3MubGVuZ3RoOyBrKyspIHRvdGFsSCArPSByb3dzW2tdLmg7DQogICAgICAgIHRvdGFsSCArPSBST1dfR0FQICogKHJvd3MubGVuZ3RoIC0gMSk7DQoNCiAgICAgICAgdmFyIHlDdXJzb3IgPSBjeSAtIHRvdGFsSCAvIDI7DQogICAgICAgIGZvciAodmFyIGsyID0gMDsgazIgPCByb3dzLmxlbmd0aDsgazIrKykgew0KICAgICAgICAgICAgdmFyIGggPSByb3dzW2syXS5oOw0KICAgICAgICAgICAgcm93c1trMl0ubGF5ZXIucHJvcGVydHkoIkFEQkUgVHJhbnNmb3JtIEdyb3VwIikucHJvcGVydHkoIkFEQkUgUG9zaXRpb24iKQ0KICAgICAgICAgICAgICAgICAgICAuc2V0VmFsdWUoW2N4LCB5Q3Vyc29yICsgaCAvIDJdKTsNCiAgICAgICAgICAgIHZhciBpblMgPSByb3dzW2syXS5pblNlYywgb3V0UyA9IHJvd3NbazJdLm91dFNlYzsNCiAgICAgICAgICAgIGlmIChvdXRTIDw9IGluUykgb3V0UyA9IGluUyArIDAuMTsNCiAgICAgICAgICAgIGlmIChvdXRTID4gY29tcC5kdXJhdGlvbikgb3V0UyA9IGNvbXAuZHVyYXRpb247DQogICAgICAgICAgICByb3dzW2syXS5sYXllci5pblBvaW50ICA9IGluUzsNCiAgICAgICAgICAgIHJvd3NbazJdLmxheWVyLm91dFBvaW50ID0gb3V0UzsNCiAgICAgICAgICAgIHlDdXJzb3IgKz0gaCArIFJPV19HQVA7DQogICAgICAgICAgICBpZiAoIXJvd3NbazJdLmFwcGxpZWQpIGZhaWxlZEZvbnRzKys7DQogICAgICAgIH0NCg0KICAgICAgICBpZiAoTE9HX0ZPTlRTKSB7DQogICAgICAgICAgICBmb3IgKHZhciBrMyA9IDA7IGszIDwgcm93cy5sZW5ndGg7IGszKyspDQogICAgICAgICAgICAgICAgbG9nTGluZXMucHVzaChyb3dzW2szXS5sYXllci5uYW1lICsgIiAgLT4gICIgKyByb3dzW2szXS5nb3QgKyAiICAob2s6ICIgKyByb3dzW2szXS5hcHBsaWVkICsgIikiKTsNCiAgICAgICAgICAgIGZvciAodmFyIGQgPSAwOyBkIDwgdXNlZFJlZnMubGVuZ3RoOyBkKyspIHVzZWRSZWZzW2RdLmVuYWJsZWQgPSBmYWxzZTsNCiAgICAgICAgICAgIGFwcC5lbmRVbmRvR3JvdXAoKTsNCiAgICAgICAgICAgIGFsZXJ0KCJMT0dfRk9OVFMgLS0gY2FyZCAiICsgY2FyZC5pZCArICI6XG5cbiIgKyBsb2dMaW5lcy5qb2luKCJcbiIpICsgIlxuXG4oU3RvcHBlZC4gU2V0IExPR19GT05UUz1mYWxzZSB0byBidWlsZCBhbGwuKSIpOw0KICAgICAgICAgICAgcmV0dXJuOw0KICAgICAgICB9DQogICAgfQ0KDQogICAgLy8gaGlkZSB0aGUgcmVmZXJlbmNlIGxheWVycyBzbyB0aGV5IGRvbid0IHJlbmRlcg0KICAgIGZvciAodmFyIGQyID0gMDsgZDIgPCB1c2VkUmVmcy5sZW5ndGg7IGQyKyspIHVzZWRSZWZzW2QyXS5lbmFibGVkID0gZmFsc2U7DQoNCiAgICBhcHAuZW5kVW5kb0dyb3VwKCk7DQogICAgdmFyIG1zZyA9ICJCdWlsdCAiICsgY2FyZHMubGVuZ3RoICsgIiBjYXB0aW9uIGNhcmRzIChwZXItcm93IHRpbWVkKS4iOw0KICAgIGlmICghcmVmSEwgfHwgIXJlZlNNKSB7DQogICAgICAgIG1zZyArPSAiXG5cbk5PVEU6ICIgKyAoIXJlZkhMID8gIlJFRl9ITCAiIDogIiIpICsgKCFyZWZTTSA/ICJSRUZfU00gIiA6ICIiKSArDQogICAgICAgICAgICAgICAibm90IGZvdW5kIC0tIHRob3NlIHJvd3MgdXNlZCBuYW1lLWJhc2VkIGZvbnRzIChtYXkgc3Vic3RpdHV0ZSkuICIgKw0KICAgICAgICAgICAgICAgIk1ha2UgdGhlIG1pc3NpbmcgcmVmZXJlbmNlIGxheWVyKHMpIGFuZCByZS1ydW4uIjsNCiAgICB9DQogICAgaWYgKGZhaWxlZEZvbnRzKSBtc2cgKz0gIlxuXG4iICsgZmFpbGVkRm9udHMgKyAiIGxheWVyKHMpIGRpZG4ndCBjb25maXJtIHRoZSByZXF1ZXN0ZWQgZm9udC4iOw0KICAgIGFsZXJ0KG1zZyk7DQp9KSgpOw==";
+const CAPTION_BUILDER_B64 = "Ly8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQ0KLy8gQ2FwdGlvbkJ1aWxkZXIuanN4ICDigJQgIEFmdGVyIEVmZmVjdHMgY2FwdGlvbiBidWlsZGVyDQovLyBQZXItcm93LXRpbWVkIHN0YWNrZWQgY2FwdGlvbnMgZnJvbSBhIGNhcHRpb25zIEpTT04uDQovLyBFUzMgLyBFeHRlbmRTY3JpcHQuIE9wZW4gYSBjb21wLCBydW4sIHBpY2sgdGhlIGNhcHRpb25zIEpTT04uDQovLw0KLy8gPj4+IEZPTlQgU0VUVVAgKGRvIHRoaXMgb25jZSwgZml4ZXMgYWxsIHRoZSBzdWJzdGl0dXRpb24gcHJvYmxlbXMpIDw8PA0KLy8gTmFtZS1iYXNlZCBmb250IHNldHRpbmcgaXMgdW5yZWxpYWJsZSBvbiB0aGlzIEFFLCBzbyB0aGUgc2NyaXB0IGNvcGllcyBmb250cw0KLy8gZnJvbSB0d28gcmVmZXJlbmNlIGxheWVycyB5b3UgbWFrZSBieSBoYW5kOg0KLy8gICAxLiBNYWtlIGEgdGV4dCBsYXllciwgc2V0IGl0IHRvIHlvdXIgSElHSExJR0hUIGZvbnQgaW4gdGhlIENoYXJhY3RlciBwYW5lbA0KLy8gICAgICAoRXVyb3BhIEdyb3Rlc2sgU0gpLCBuYW1lIGl0IGV4YWN0bHkgIFJFRl9ITA0KLy8gICAyLiBNYWtlIGEgdGV4dCBsYXllciwgc2V0IGl0IHRvIHlvdXIgU01BTEwgZm9udCAoSW50ZXIsIExpZ2h0KSwNCi8vICAgICAgbmFtZSBpdCBleGFjdGx5ICBSRUZfU00NCi8vICAgMy4gTGVhdmUgYm90aCBpbiB0aGUgY29tcCBhbmQgcnVuLiBUaGUgc2NyaXB0IGR1cGxpY2F0ZXMgdGhlbSBwZXIgcm93IGFuZA0KLy8gICAgICBvbmx5IGNoYW5nZXMgdGhlIHRleHQgKyBzaXplIC0+IHRoZSBmb250IGlzIG5ldmVyIHJlLXJlc29sdmVkLCBzbyBpdA0KLy8gICAgICBjYW4ndCBkcmlmdCB0byBUYWN0aWMgLyBJbnRlciBSZWd1bGFyLiBUaGUgUkVGIGxheWVycyBhcmUgYXV0by1kaXNhYmxlZA0KLy8gICAgICBhZnRlciB0aGUgYnVpbGQgKGRlbGV0ZSB0aGVtIHdoZW5ldmVyKS4NCi8vIElmIGEgUkVGIGxheWVyIGlzIG1pc3NpbmcgaXQgZmFsbHMgYmFjayB0byBzZXR0aW5nIHRoZSBmb250IGJ5IG5hbWUgKGZsYWt5KS4NCi8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NCg0KLy8gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSBMQVlPVVQgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KdmFyIFNJWkVfSEwgICA9IDE2MDsNCnZhciBTSVpFX1NNICAgPSA1NTsNCnZhciBST1dfR0FQICAgPSAyMDsNCnZhciBZX0FOQ0hPUiAgPSAwLjU7ICAgICAgICAgIC8vIDAuNSA9IGNlbnRyZSwgMC43OCA9IGxvd2VyLXRoaXJkDQoNCi8vIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gRk9OVFMgKHJlZmVyZW5jZSBsYXllcnMpIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCnZhciBGT05UX0hMX1JFRiA9ICJSRUZfSEwiOyAgIC8vIHRleHQgbGF5ZXIgc2V0IHRvIHRoZSBoaWdobGlnaHQgZm9udCBieSBoYW5kDQp2YXIgRk9OVF9TTV9SRUYgPSAiUkVGX1NNIjsgICAvLyB0ZXh0IGxheWVyIHNldCB0byB0aGUgc21hbGwgZm9udCAoSW50ZXIgTGlnaHQpIGJ5IGhhbmQNCg0KLy8gRmFsbGJhY2sgT05MWSBpZiBhIFJFRiBsYXllciBhYm92ZSBpcyBub3QgZm91bmQgKG5hbWUtYmFzZWQsIG1heSBzdWJzdGl0dXRlKToNCnZhciBGT05UX0hMICAgPSB7IGZhbWlseTogIkV1cm9wYSBHcm90ZXNrIFNIIiwgc3R5bGU6ICIiIH07DQp2YXIgRk9OVF9TTSAgID0geyBmYW1pbHk6ICJJbnRlciIsICAgICAgICAgICAgIHN0eWxlOiAiTGlnaHQiIH07DQoNCi8vIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gQ0FTSU5HIC8gQ09MT1VSIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCnZhciBITF9DQVNFICAgPSAiYXNpcyI7ICAgICAgIC8vIFdZU0lXWUc6IGVtaXQgZXhhY3RseSB3aGF0IHRoZSBlZGl0b3IgdHlwZWQuIChhc2lzIHwgc2VudGVuY2UgfCBsb3dlciB8IHVwcGVyIHwgdGl0bGUpDQp2YXIgU01fQ0FTRSAgID0gImFzaXMiOyAgICAgICAvLyAiYXNpcyIgfCAibG93ZXIiIHwgInVwcGVyIg0KdmFyIENPTE9SX0hMICA9IFsxLCAxLCAxXTsNCnZhciBDT0xPUl9TTSAgPSBbMSwgMSwgMV07DQoNCi8vIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gVElNSU5HIChmbGF0LXNjaGVtYSBmYWxsYmFjaykgLS0tLS0tLS0tLS0tLS0tLS0NCi8vIFBlci1yb3cgSlNPTiAob2JqZWN0cyB3aXRoIGluL291dCkgaXMgYXBwbGllZCB2ZXJiYXRpbS4gVGhlc2Ugb25seSBhcHBseSB0bw0KLy8gdGhlIE9MRCBmbGF0IHNjaGVtYSB3aGVyZSBoaWdobGlnaHQgaXMgYSBwbGFpbiBzdHJpbmcuDQp2YXIgSE9MRF9UT19ORVhUID0gZmFsc2U7DQp2YXIgVEFJTF9QQUQgICAgID0gMC4zMDsNCnZhciBNQVhfSE9MRCAgICAgPSAwOw0KDQp2YXIgTE9HX0ZPTlRTID0gZmFsc2U7ICAgICAgICAvLyB0cnVlOiBidWlsZCBjYXJkIDEgb25seSwgYWxlcnQgcmVzb2x2ZWQgZm9udHMsIHN0b3AuDQovLyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQoNCg0KKGZ1bmN0aW9uICgpIHsNCiAgICB2YXIgY29tcCA9IGFwcC5wcm9qZWN0LmFjdGl2ZUl0ZW07DQogICAgaWYgKCEoY29tcCAmJiBjb21wIGluc3RhbmNlb2YgQ29tcEl0ZW0pKSB7IGFsZXJ0KCJPcGVuIGEgY29tcCBmaXJzdC4iKTsgcmV0dXJuOyB9DQoNCiAgICB2YXIgZiA9IEZpbGUub3BlbkRpYWxvZygiU2VsZWN0IGNhcHRpb25zIEpTT04iLCAiKi5qc29uIik7DQogICAgaWYgKCFmKSB7IHJldHVybjsgfQ0KICAgIGYuZW5jb2RpbmcgPSAiVVRGLTgiOw0KICAgIGYub3BlbigiciIpOyB2YXIgdHh0ID0gZi5yZWFkKCk7IGYuY2xvc2UoKTsNCiAgICBpZiAodHh0LmNoYXJDb2RlQXQoMCkgPT09IDB4RkVGRikgdHh0ID0gdHh0LnN1YnN0cmluZygxKTsNCg0KICAgIHZhciBjYXJkczsNCiAgICB0cnkgeyBjYXJkcyA9IGV2YWwoIigiICsgdHh0ICsgIikiKTsgfQ0KICAgIGNhdGNoIChlKSB7IGFsZXJ0KCJDb3VsZG4ndCBwYXJzZSBKU09OOlxuIiArIGUudG9TdHJpbmcoKSk7IHJldHVybjsgfQ0KICAgIGlmICghKGNhcmRzICYmIGNhcmRzLmxlbmd0aCkpIHsgYWxlcnQoIk5vIGNhcmRzIGluIEpTT04uIik7IHJldHVybjsgfQ0KDQogICAgZnVuY3Rpb24gdGMyc2VjKHRjKSB7DQogICAgICAgIHZhciBwID0gU3RyaW5nKHRjKS5zcGxpdCgiLCIpOw0KICAgICAgICB2YXIgaG1zID0gcFswXS5zcGxpdCgiOiIpOw0KICAgICAgICB2YXIgbXMgPSAocC5sZW5ndGggPiAxKSA/IHBhcnNlSW50KHBbMV0sIDEwKSA6IDA7DQogICAgICAgIHJldHVybiBwYXJzZUludChobXNbMF0sIDEwKSAqIDM2MDAgKyBwYXJzZUludChobXNbMV0sIDEwKSAqIDYwICsgcGFyc2VJbnQoaG1zWzJdLCAxMCkgKyBtcyAvIDEwMDA7DQogICAgfQ0KICAgIGZ1bmN0aW9uIGhhcyh2KSB7IHJldHVybiB2ICE9IG51bGwgJiYgU3RyaW5nKHYpICE9PSAiIjsgfQ0KICAgIGZ1bmN0aW9uIHJlY2FzZUhMKHcsIGxlYWRzKSB7DQogICAgICAgIGlmIChITF9DQVNFID09PSAiYXNpcyIpIHJldHVybiB3Ow0KICAgICAgICBpZiAoSExfQ0FTRSA9PT0gInVwcGVyIikgcmV0dXJuIHcudG9VcHBlckNhc2UoKTsNCiAgICAgICAgaWYgKEhMX0NBU0UgPT09ICJsb3dlciIpIHJldHVybiB3LnRvTG93ZXJDYXNlKCk7DQogICAgICAgIGlmIChITF9DQVNFID09PSAidGl0bGUiKSByZXR1cm4gdy50b0xvd2VyQ2FzZSgpLnJlcGxhY2UoL1xiW2Etel0vZywgZnVuY3Rpb24gKGMpIHsgcmV0dXJuIGMudG9VcHBlckNhc2UoKTsgfSk7DQogICAgICAgIHZhciBzID0gdy50b0xvd2VyQ2FzZSgpOw0KICAgICAgICBpZiAobGVhZHMgJiYgcy5sZW5ndGgpIHMgPSBzLmNoYXJBdCgwKS50b1VwcGVyQ2FzZSgpICsgcy5zdWJzdHJpbmcoMSk7DQogICAgICAgIHJldHVybiBzOw0KICAgIH0NCiAgICBmdW5jdGlvbiByZWNhc2VTTSh3KSB7DQogICAgICAgIGlmIChTTV9DQVNFID09PSAibG93ZXIiKSByZXR1cm4gdy50b0xvd2VyQ2FzZSgpOw0KICAgICAgICBpZiAoU01fQ0FTRSA9PT0gInVwcGVyIikgcmV0dXJuIHcudG9VcHBlckNhc2UoKTsNCiAgICAgICAgcmV0dXJuIHc7DQogICAgfQ0KICAgIGZ1bmN0aW9uIGdldFJlZkxheWVyKG5hbWUpIHsNCiAgICAgICAgaWYgKCFuYW1lKSByZXR1cm4gbnVsbDsNCiAgICAgICAgZm9yICh2YXIgaSA9IDE7IGkgPD0gY29tcC5udW1MYXllcnM7IGkrKykgew0KICAgICAgICAgICAgdmFyIEwgPSBjb21wLmxheWVyKGkpOw0KICAgICAgICAgICAgaWYgKEwubmFtZSA9PT0gbmFtZSAmJiBMLnByb3BlcnR5KCJBREJFIFRleHQgUHJvcGVydGllcyIpKSByZXR1cm4gTDsNCiAgICAgICAgfQ0KICAgICAgICByZXR1cm4gbnVsbDsNCiAgICB9DQogICAgdmFyIHJlZkhMID0gZ2V0UmVmTGF5ZXIoRk9OVF9ITF9SRUYpOw0KICAgIHZhciByZWZTTSA9IGdldFJlZkxheWVyKEZPTlRfU01fUkVGKTsNCiAgICB2YXIgdXNlZFJlZnMgPSBbXTsNCiAgICBpZiAocmVmSEwpIHVzZWRSZWZzLnB1c2gocmVmSEwpOw0KICAgIGlmIChyZWZTTSkgdXNlZFJlZnMucHVzaChyZWZTTSk7DQoNCiAgICBmdW5jdGlvbiBwYXJzZUZpZWxkKGZpZWxkLCBmYkluLCBmYk91dCkgew0KICAgICAgICBpZiAoZmllbGQgPT0gbnVsbCkgcmV0dXJuIG51bGw7DQogICAgICAgIGlmICh0eXBlb2YgZmllbGQgPT09ICJzdHJpbmciKSB7DQogICAgICAgICAgICBpZiAoZmllbGQgPT09ICIiKSByZXR1cm4gbnVsbDsNCiAgICAgICAgICAgIHJldHVybiB7IHRleHQ6IGZpZWxkLCBpblNlYzogZmJJbiwgb3V0U2VjOiBmYk91dCB9Ow0KICAgICAgICB9DQogICAgICAgIGlmICghaGFzKGZpZWxkLnRleHQpKSByZXR1cm4gbnVsbDsNCiAgICAgICAgcmV0dXJuIHsNCiAgICAgICAgICAgIHRleHQ6IGZpZWxkLnRleHQsDQogICAgICAgICAgICBpblNlYzogIGhhcyhmaWVsZFsiaW4iXSkgID8gdGMyc2VjKGZpZWxkWyJpbiJdKSAgOiBmYkluLA0KICAgICAgICAgICAgb3V0U2VjOiBoYXMoZmllbGRbIm91dCJdKSA/IHRjMnNlYyhmaWVsZFsib3V0Il0pIDogZmJPdXQNCiAgICAgICAgfTsNCiAgICB9DQoNCiAgICAvLyBCdWlsZCBhIHN0eWxlZCB0ZXh0IGxheWVyLiBJZiByZWZMYXllciBpcyBnaXZlbiwgRFVQTElDQVRFIGl0IChmb250IGNvcGllZA0KICAgIC8vIHZlcmJhdGltLCBuZXZlciByZS1yZXNvbHZlZCkuIEVsc2UgY3JlYXRlIGZyZXNoIGFuZCBzZXQgZm9udCBieSBuYW1lK3N0eWxlLA0KICAgIC8vIHZlcmlmeWluZyBCT1RIIGZhbWlseSBhbmQgc3R5bGUgb24gcmVhZGJhY2suDQogICAgZnVuY3Rpb24gbWFrZVJvdyhzdHIsIHNpemUsIGNvbG9yLCBmb250U3BlYywgcmVmTGF5ZXIsIG5hbWUsIG1lYXN1cmVUKSB7DQogICAgICAgIHZhciB0bCwgdHAsIGRvYywgYXBwbGllZCwgZ290Ow0KDQogICAgICAgIGlmIChyZWZMYXllcikgew0KICAgICAgICAgICAgdGwgPSByZWZMYXllci5kdXBsaWNhdGUoKTsNCiAgICAgICAgICAgIHRsLmVuYWJsZWQgPSB0cnVlOw0KICAgICAgICAgICAgdHAgPSB0bC5wcm9wZXJ0eSgiQURCRSBUZXh0IFByb3BlcnRpZXMiKS5wcm9wZXJ0eSgiQURCRSBUZXh0IERvY3VtZW50Iik7DQogICAgICAgICAgICBkb2MgPSB0cC52YWx1ZTsNCiAgICAgICAgICAgIGRvYy50ZXh0ID0gc3RyOw0KICAgICAgICAgICAgZG9jLmZvbnRTaXplID0gc2l6ZTsNCiAgICAgICAgICAgIGRvYy5hcHBseUZpbGwgPSB0cnVlOw0KICAgICAgICAgICAgZG9jLmZpbGxDb2xvciA9IGNvbG9yOw0KICAgICAgICAgICAgZG9jLmp1c3RpZmljYXRpb24gPSBQYXJhZ3JhcGhKdXN0aWZpY2F0aW9uLkNFTlRFUl9KVVNUSUZZOw0KICAgICAgICAgICAgdHAuc2V0VmFsdWUoZG9jKTsgICAgICAgICAgICAgICAgICAgICAgIC8vIGZvbnQgdW50b3VjaGVkIC0+IHN0YXlzIHJlc29sdmVkDQogICAgICAgICAgICBnb3QgPSBTdHJpbmcodHAudmFsdWUuZm9udEZhbWlseSkgKyAiIC8gIiArIFN0cmluZyh0cC52YWx1ZS5mb250U3R5bGUpOw0KICAgICAgICAgICAgYXBwbGllZCA9IHRydWU7DQogICAgICAgIH0gZWxzZSB7DQogICAgICAgICAgICB0bCA9IGNvbXAubGF5ZXJzLmFkZFRleHQoc3RyKTsNCiAgICAgICAgICAgIHRwID0gdGwucHJvcGVydHkoIkFEQkUgVGV4dCBQcm9wZXJ0aWVzIikucHJvcGVydHkoIkFEQkUgVGV4dCBEb2N1bWVudCIpOw0KICAgICAgICAgICAgdmFyIHdhbnRGID0gU3RyaW5nKGZvbnRTcGVjLmZhbWlseSk7DQogICAgICAgICAgICB2YXIgd2FudFMgPSAoZm9udFNwZWMuc3R5bGUgfHwgIiIpOw0KICAgICAgICAgICAgZm9yICh2YXIgYSA9IDA7IGEgPCA2OyBhKyspIHsNCiAgICAgICAgICAgICAgICBkb2MgPSB0cC52YWx1ZTsNCiAgICAgICAgICAgICAgICBkb2MuZm9udFNpemUgPSBzaXplOyBkb2MuYXBwbHlGaWxsID0gdHJ1ZTsgZG9jLmZpbGxDb2xvciA9IGNvbG9yOw0KICAgICAgICAgICAgICAgIGRvYy5qdXN0aWZpY2F0aW9uID0gUGFyYWdyYXBoSnVzdGlmaWNhdGlvbi5DRU5URVJfSlVTVElGWTsNCiAgICAgICAgICAgICAgICB0cnkgeyBkb2MuZm9udEZhbWlseSA9IHdhbnRGOyBpZiAod2FudFMubGVuZ3RoKSBkb2MuZm9udFN0eWxlID0gd2FudFM7IH0NCiAgICAgICAgICAgICAgICBjYXRjaCAoZSkgeyB0cnkgeyBkb2MuZm9udCA9IHdhbnRGOyB9IGNhdGNoIChlMikge30gfQ0KICAgICAgICAgICAgICAgIHRwLnNldFZhbHVlKGRvYyk7DQogICAgICAgICAgICAgICAgdmFyIG9rRiA9IChTdHJpbmcodHAudmFsdWUuZm9udEZhbWlseSkgPT09IHdhbnRGKTsNCiAgICAgICAgICAgICAgICB2YXIgb2tTID0gKCF3YW50Uy5sZW5ndGgpIHx8IChTdHJpbmcodHAudmFsdWUuZm9udFN0eWxlKSA9PT0gd2FudFMpOw0KICAgICAgICAgICAgICAgIGlmIChva0YgJiYgb2tTKSBicmVhazsgICAgICAgICAgICAgIC8vIHZlcmlmeSBmYW1pbHkgQU5EIHN0eWxlDQogICAgICAgICAgICB9DQogICAgICAgICAgICBnb3QgPSBTdHJpbmcodHAudmFsdWUuZm9udEZhbWlseSkgKyAiIC8gIiArIFN0cmluZyh0cC52YWx1ZS5mb250U3R5bGUpOw0KICAgICAgICAgICAgYXBwbGllZCA9IChTdHJpbmcodHAudmFsdWUuZm9udEZhbWlseSkgPT09IHdhbnRGKSAmJg0KICAgICAgICAgICAgICAgICAgICAgICghd2FudFMubGVuZ3RoIHx8IFN0cmluZyh0cC52YWx1ZS5mb250U3R5bGUpID09PSB3YW50Uyk7DQogICAgICAgIH0NCg0KICAgICAgICB0bC5uYW1lID0gbmFtZTsNCiAgICAgICAgdmFyIHIgPSB0bC5zb3VyY2VSZWN0QXRUaW1lKG1lYXN1cmVULCBmYWxzZSk7DQogICAgICAgIHRsLnByb3BlcnR5KCJBREJFIFRyYW5zZm9ybSBHcm91cCIpLnByb3BlcnR5KCJBREJFIEFuY2hvciBQb2ludCIpDQogICAgICAgICAgLnNldFZhbHVlKFtyLmxlZnQgKyByLndpZHRoIC8gMiwgci50b3AgKyByLmhlaWdodCAvIDJdKTsNCiAgICAgICAgcmV0dXJuIHsgbGF5ZXI6IHRsLCBoOiByLmhlaWdodCwgYXBwbGllZDogYXBwbGllZCwgZ290OiBnb3QgfTsNCiAgICB9DQoNCiAgICB2YXIgc3RhcnRzID0gW107DQogICAgZm9yICh2YXIgaSA9IDA7IGkgPCBjYXJkcy5sZW5ndGg7IGkrKykgc3RhcnRzW2ldID0gdGMyc2VjKGNhcmRzW2ldLnN0YXJ0KTsNCg0KICAgIHZhciBjeCA9IGNvbXAud2lkdGggLyAyLCBjeSA9IGNvbXAuaGVpZ2h0ICogWV9BTkNIT1I7DQogICAgYXBwLmJlZ2luVW5kb0dyb3VwKCJCdWlsZCBDYXB0aW9ucyIpOw0KICAgIHZhciBmYWlsZWRGb250cyA9IDAsIGxvZ0xpbmVzID0gW107DQoNCiAgICBmb3IgKHZhciBjID0gMDsgYyA8IGNhcmRzLmxlbmd0aDsgYysrKSB7DQogICAgICAgIHZhciBjYXJkID0gY2FyZHNbY107DQoNCiAgICAgICAgdmFyIGZiSW4gPSB0YzJzZWMoY2FyZC5zdGFydCk7DQogICAgICAgIHZhciBlbmRTZWMgPSBoYXMoY2FyZC5lbmQpID8gdGMyc2VjKGNhcmQuZW5kKSA6IGZiSW4gKyAwLjU7DQogICAgICAgIHZhciBuZXh0U3RhcnQgPSAoYyA8IGNhcmRzLmxlbmd0aCAtIDEpID8gc3RhcnRzW2MgKyAxXSA6IG51bGw7DQogICAgICAgIHZhciBmYk91dDsNCiAgICAgICAgaWYgKEhPTERfVE9fTkVYVCkgew0KICAgICAgICAgICAgZmJPdXQgPSAobmV4dFN0YXJ0ICE9IG51bGwpID8gbmV4dFN0YXJ0IDogZW5kU2VjOw0KICAgICAgICAgICAgaWYgKE1BWF9IT0xEID4gMCkgZmJPdXQgPSBNYXRoLm1pbihmYk91dCwgZW5kU2VjICsgTUFYX0hPTEQpOw0KICAgICAgICB9IGVsc2Ugew0KICAgICAgICAgICAgZmJPdXQgPSBlbmRTZWMgKyBUQUlMX1BBRDsNCiAgICAgICAgICAgIGlmIChuZXh0U3RhcnQgIT0gbnVsbCkgZmJPdXQgPSBNYXRoLm1pbihmYk91dCwgbmV4dFN0YXJ0KTsNCiAgICAgICAgfQ0KDQogICAgICAgIHZhciB0b3AgPSBwYXJzZUZpZWxkKGNhcmQuc21hbGxfdG9wLCAgICBmYkluLCBmYk91dCk7DQogICAgICAgIHZhciBobHIgPSBwYXJzZUZpZWxkKGNhcmQuaGlnaGxpZ2h0LCAgICBmYkluLCBmYk91dCk7DQogICAgICAgIHZhciBib3QgPSBwYXJzZUZpZWxkKGNhcmQuc21hbGxfYm90dG9tLCBmYkluLCBmYk91dCk7DQogICAgICAgIHZhciBsZWFkcyA9ICF0b3A7DQoNCiAgICAgICAgdmFyIHJvd3MgPSBbXTsNCiAgICAgICAgZnVuY3Rpb24gcHVzaFJvdyhkZWYsIHNpemUsIGNvbG9yLCBmb250U3BlYywgcmVmTGF5ZXIsIHN1ZmZpeCwgaXNITCwgbGVhZEZsYWcpIHsNCiAgICAgICAgICAgIGlmICghZGVmKSByZXR1cm47DQogICAgICAgICAgICB2YXIgcyA9IGlzSEwgPyByZWNhc2VITChkZWYudGV4dCwgbGVhZEZsYWcpIDogcmVjYXNlU00oZGVmLnRleHQpOw0KICAgICAgICAgICAgdmFyIG0gPSBtYWtlUm93KHMsIHNpemUsIGNvbG9yLCBmb250U3BlYywgcmVmTGF5ZXIsICJDIiArIGNhcmQuaWQgKyBzdWZmaXgsIGRlZi5pblNlYyk7DQogICAgICAgICAgICBtLmluU2VjID0gZGVmLmluU2VjOyBtLm91dFNlYyA9IGRlZi5vdXRTZWM7DQogICAgICAgICAgICByb3dzLnB1c2gobSk7DQogICAgICAgIH0NCiAgICAgICAgcHVzaFJvdyh0b3AsIFNJWkVfU00sIENPTE9SX1NNLCBGT05UX1NNLCByZWZTTSwgIl9UT1AiLCBmYWxzZSwgZmFsc2UpOw0KICAgICAgICBwdXNoUm93KGhsciwgU0laRV9ITCwgQ09MT1JfSEwsIEZPTlRfSEwsIHJlZkhMLCAiX0hMIiwgIHRydWUsICBsZWFkcyk7DQogICAgICAgIHB1c2hSb3coYm90LCBTSVpFX1NNLCBDT0xPUl9TTSwgRk9OVF9TTSwgcmVmU00sICJfQk9UIiwgZmFsc2UsIGZhbHNlKTsNCiAgICAgICAgaWYgKCFyb3dzLmxlbmd0aCkgY29udGludWU7DQoNCiAgICAgICAgdmFyIHRvdGFsSCA9IDA7DQogICAgICAgIGZvciAodmFyIGsgPSAwOyBrIDwgcm93cy5sZW5ndGg7IGsrKykgdG90YWxIICs9IHJvd3Nba10uaDsNCiAgICAgICAgdG90YWxIICs9IFJPV19HQVAgKiAocm93cy5sZW5ndGggLSAxKTsNCg0KICAgICAgICB2YXIgeUN1cnNvciA9IGN5IC0gdG90YWxIIC8gMjsNCiAgICAgICAgZm9yICh2YXIgazIgPSAwOyBrMiA8IHJvd3MubGVuZ3RoOyBrMisrKSB7DQogICAgICAgICAgICB2YXIgaCA9IHJvd3NbazJdLmg7DQogICAgICAgICAgICByb3dzW2syXS5sYXllci5wcm9wZXJ0eSgiQURCRSBUcmFuc2Zvcm0gR3JvdXAiKS5wcm9wZXJ0eSgiQURCRSBQb3NpdGlvbiIpDQogICAgICAgICAgICAgICAgICAgIC5zZXRWYWx1ZShbY3gsIHlDdXJzb3IgKyBoIC8gMl0pOw0KICAgICAgICAgICAgdmFyIGluUyA9IHJvd3NbazJdLmluU2VjLCBvdXRTID0gcm93c1trMl0ub3V0U2VjOw0KICAgICAgICAgICAgaWYgKG91dFMgPD0gaW5TKSBvdXRTID0gaW5TICsgMC4xOw0KICAgICAgICAgICAgaWYgKG91dFMgPiBjb21wLmR1cmF0aW9uKSBvdXRTID0gY29tcC5kdXJhdGlvbjsNCiAgICAgICAgICAgIHJvd3NbazJdLmxheWVyLmluUG9pbnQgID0gaW5TOw0KICAgICAgICAgICAgcm93c1trMl0ubGF5ZXIub3V0UG9pbnQgPSBvdXRTOw0KICAgICAgICAgICAgeUN1cnNvciArPSBoICsgUk9XX0dBUDsNCiAgICAgICAgICAgIGlmICghcm93c1trMl0uYXBwbGllZCkgZmFpbGVkRm9udHMrKzsNCiAgICAgICAgfQ0KDQogICAgICAgIGlmIChMT0dfRk9OVFMpIHsNCiAgICAgICAgICAgIGZvciAodmFyIGszID0gMDsgazMgPCByb3dzLmxlbmd0aDsgazMrKykNCiAgICAgICAgICAgICAgICBsb2dMaW5lcy5wdXNoKHJvd3NbazNdLmxheWVyLm5hbWUgKyAiICAtPiAgIiArIHJvd3NbazNdLmdvdCArICIgIChvazogIiArIHJvd3NbazNdLmFwcGxpZWQgKyAiKSIpOw0KICAgICAgICAgICAgZm9yICh2YXIgZCA9IDA7IGQgPCB1c2VkUmVmcy5sZW5ndGg7IGQrKykgdXNlZFJlZnNbZF0uZW5hYmxlZCA9IGZhbHNlOw0KICAgICAgICAgICAgYXBwLmVuZFVuZG9Hcm91cCgpOw0KICAgICAgICAgICAgYWxlcnQoIkxPR19GT05UUyAtLSBjYXJkICIgKyBjYXJkLmlkICsgIjpcblxuIiArIGxvZ0xpbmVzLmpvaW4oIlxuIikgKyAiXG5cbihTdG9wcGVkLiBTZXQgTE9HX0ZPTlRTPWZhbHNlIHRvIGJ1aWxkIGFsbC4pIik7DQogICAgICAgICAgICByZXR1cm47DQogICAgICAgIH0NCiAgICB9DQoNCiAgICAvLyBoaWRlIHRoZSByZWZlcmVuY2UgbGF5ZXJzIHNvIHRoZXkgZG9uJ3QgcmVuZGVyDQogICAgZm9yICh2YXIgZDIgPSAwOyBkMiA8IHVzZWRSZWZzLmxlbmd0aDsgZDIrKykgdXNlZFJlZnNbZDJdLmVuYWJsZWQgPSBmYWxzZTsNCg0KICAgIGFwcC5lbmRVbmRvR3JvdXAoKTsNCiAgICB2YXIgbXNnID0gIkJ1aWx0ICIgKyBjYXJkcy5sZW5ndGggKyAiIGNhcHRpb24gY2FyZHMgKHBlci1yb3cgdGltZWQpLiI7DQogICAgaWYgKCFyZWZITCB8fCAhcmVmU00pIHsNCiAgICAgICAgbXNnICs9ICJcblxuTk9URTogIiArICghcmVmSEwgPyAiUkVGX0hMICIgOiAiIikgKyAoIXJlZlNNID8gIlJFRl9TTSAiIDogIiIpICsNCiAgICAgICAgICAgICAgICJub3QgZm91bmQgLS0gdGhvc2Ugcm93cyB1c2VkIG5hbWUtYmFzZWQgZm9udHMgKG1heSBzdWJzdGl0dXRlKS4gIiArDQogICAgICAgICAgICAgICAiTWFrZSB0aGUgbWlzc2luZyByZWZlcmVuY2UgbGF5ZXIocykgYW5kIHJlLXJ1bi4iOw0KICAgIH0NCiAgICBpZiAoZmFpbGVkRm9udHMpIG1zZyArPSAiXG5cbiIgKyBmYWlsZWRGb250cyArICIgbGF5ZXIocykgZGlkbid0IGNvbmZpcm0gdGhlIHJlcXVlc3RlZCBmb250LiI7DQogICAgYWxlcnQobXNnKTsNCn0pKCk7";
 function b64decode(s) {
   try {
     return decodeURIComponent(Array.prototype.map.call(atob(s),
@@ -336,6 +338,39 @@ function deriveTiming(cards, wordById, tailPad) {
   });
 }
 
+// --------------------------------------------------------- script cleaner --
+// Strip the non-spoken scaffolding clients leave in a script before it's
+// aligned: ad/scene headers, SRT/VTT cue numbers + timecodes, and leading
+// speaker labels. The transcript only contains *spoken* words, so any of this
+// left in would align as bogus inserts. Conservative on purpose — it removes
+// whole structural lines/prefixes, never touches the prose itself. Idempotent,
+// so running it twice is a no-op. Tune the patterns as messier scripts appear.
+const RE_VTT_HEADER   = /^\uFEFF?WEBVTT.*$/i;                 // VTT file header
+const RE_TIMECODE     = /^\s*(\d{1,2}:)?\d{1,2}:\d{2}([.,]\d{1,3})?\s*-->\s*(\d{1,2}:)?\d{1,2}:\d{2}([.,]\d{1,3})?.*$/; // SRT/VTT cue range
+const RE_CUE_NUMBER   = /^\s*\d{1,6}\s*$/;                    // standalone SRT index
+const RE_AD_HEADER    = /^\s*(ad|advert|video|script|hook|vsl|ugc|spot|clip|take)\s*#?\s*\d*\s*[—–\-:].*$/i; // "AD 3 — …", "VIDEO 2:", "Hook -"
+const RE_BRACKET_NOTE = /^\s*[\[(<].*[\])>]\s*$/;            // [B-ROLL], (pause), <music>
+const RE_SPEAKER      = /^\s*[A-Z][A-Za-z0-9 .'\-]{0,28}:\s+/; // "Narrator: ", "VO: ", "Toby: " prefix on a line
+
+function cleanScript(text) {
+  if (!text) return "";
+  const lines = String(text).replace(/\r\n?/g, "\n").split("\n");
+  const kept = [];
+  for (let i = 0; i < lines.length; i++) {
+    let ln = lines[i];
+    if (RE_VTT_HEADER.test(ln)) continue;
+    if (RE_TIMECODE.test(ln)) continue;
+    // a bare number that is an SRT cue index (followed by a timecode) — not real text
+    if (RE_CUE_NUMBER.test(ln) && i + 1 < lines.length && RE_TIMECODE.test(lines[i + 1])) continue;
+    if (RE_AD_HEADER.test(ln)) continue;
+    if (RE_BRACKET_NOTE.test(ln)) continue;
+    ln = ln.replace(RE_SPEAKER, "");               // drop a leading speaker label, keep the line
+    kept.push(ln);
+  }
+  // collapse runs of blank lines, trim the ends
+  return kept.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+
 // ----------------------------------------------------------- NW alignment --
 // The script is written in prose, but the transcript times every spoken word
 // separately. So a compound the writer hyphenated ("full-time", "blood-work",
@@ -432,9 +467,11 @@ function buildCaptionsJSON(cards, derived) {
   return cards.map((card, n) => {
     const d = derived[n];
     const nRows = 1 + (d.top.length ? 1 : 0) + (d.bot.length ? 1 : 0);
-    const topTxt = d.top.map((w) => core(w.text)).join(" ").toLowerCase();
-    const hlTxt = d.hl.map((w) => core(w.text)).join(" ").toUpperCase();
-    const botTxt = d.bot.map((w) => core(w.text)).join(" ").toLowerCase();
+    // V3 WYSIWYG: emit exactly what the editor shows — no forced lower/upper.
+    // Case now lives in the word text itself (edit a word to set it).
+    const topTxt = d.top.map((w) => core(w.text)).join(" ");
+    const hlTxt = d.hl.map((w) => core(w.text)).join(" ");
+    const botTxt = d.bot.map((w) => core(w.text)).join(" ");
     const outTc = tc(d.outSec);
     const row = (txt, inSec) => (txt ? { text: txt, in: tc(inSec), out: outTc } : { text: "", in: "", out: "" });
     return {
@@ -454,6 +491,60 @@ function download(name, data) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+// ---------------------------------------------------- local persistence ----
+// V3: client-side autosave + named local projects via IndexedDB. NO backend.
+// Every call is wrapped so that environments where storage is blocked (e.g. the
+// sandboxed artifact preview) simply no-op — the app keeps working, it just
+// won't persist there. On the deployed site (a real origin) it persists fully.
+// Stores only the project STATE (words/cards/cfg/script), never the media blob.
+const IDB_NAME = "captionsplitter", IDB_VER = 1;
+const idbAvailable = (() => { try { return typeof indexedDB !== "undefined" && !!indexedDB; } catch (e) { return false; } })();
+
+function idbOpen() {
+  return new Promise((res, rej) => {
+    try {
+      const r = indexedDB.open(IDB_NAME, IDB_VER);
+      r.onupgradeneeded = () => {
+        const db = r.result;
+        if (!db.objectStoreNames.contains("kv")) db.createObjectStore("kv");
+        if (!db.objectStoreNames.contains("projects")) db.createObjectStore("projects", { keyPath: "id" });
+      };
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    } catch (e) { rej(e); }
+  });
+}
+async function idbKvPut(key, val) {
+  try { const db = await idbOpen(); return await new Promise((res, rej) => {
+    const tx = db.transaction("kv", "readwrite"); tx.objectStore("kv").put(val, key);
+    tx.oncomplete = () => res(true); tx.onerror = () => rej(tx.error); }); } catch (e) { return false; }
+}
+async function idbKvGet(key) {
+  try { const db = await idbOpen(); return await new Promise((res, rej) => {
+    const tx = db.transaction("kv", "readonly"); const rq = tx.objectStore("kv").get(key);
+    rq.onsuccess = () => res(rq.result != null ? rq.result : null); rq.onerror = () => rej(rq.error); }); } catch (e) { return null; }
+}
+async function idbKvDel(key) {
+  try { const db = await idbOpen(); return await new Promise((res) => {
+    const tx = db.transaction("kv", "readwrite"); tx.objectStore("kv").delete(key);
+    tx.oncomplete = () => res(true); tx.onerror = () => res(false); }); } catch (e) { return false; }
+}
+async function idbProjPut(p) {
+  try { const db = await idbOpen(); return await new Promise((res, rej) => {
+    const tx = db.transaction("projects", "readwrite"); tx.objectStore("projects").put(p);
+    tx.oncomplete = () => res(true); tx.onerror = () => rej(tx.error); }); } catch (e) { return false; }
+}
+async function idbProjAll() {
+  try { const db = await idbOpen(); return await new Promise((res, rej) => {
+    const tx = db.transaction("projects", "readonly"); const rq = tx.objectStore("projects").getAll();
+    rq.onsuccess = () => res(rq.result || []); rq.onerror = () => rej(rq.error); }); } catch (e) { return []; }
+}
+async function idbProjDel(id) {
+  try { const db = await idbOpen(); return await new Promise((res) => {
+    const tx = db.transaction("projects", "readwrite"); tx.objectStore("projects").delete(id);
+    tx.oncomplete = () => res(true); tx.onerror = () => res(false); }); } catch (e) { return false; }
+}
+
 // ============================================================== audio hook ===
 // One hidden <audio> drives playback; the decoded mono channel drives the
 // waveform. Segment playback (a word, a card) seeks then auto-stops at `segEnd`.
@@ -464,6 +555,7 @@ function useAudio() {
   const raf = useRef(0);
   const [url, setUrl] = useState("");
   const [name, setName] = useState("");
+  const [kind, setKind] = useState("audio");      // "audio" | "video"
   const [channel, setChannel] = useState(null);   // Float32Array, mono mix
   const [duration, setDuration] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -479,7 +571,7 @@ function useAudio() {
     if (!a) return;
     const onMeta = () => setDuration((d) => (isFinite(a.duration) ? a.duration : d));
     const onEnd = () => { setPlaying(false); segEnd.current = null; };
-    const onErr = () => setErr("The browser couldn't load this audio file. Try a .wav, .mp3, or .m4a export.");
+    const onErr = () => setErr("The browser couldn't load this file. Use a .wav/.mp3/.m4a for audio, or an H.264 .mp4 / .webm for video (ProRes .mov won't play in a browser).");
     const onPlay = () => { setErr(""); setPlaying(true); };
     const onPause = () => setPlaying(false);
     a.addEventListener("loadedmetadata", onMeta);
@@ -518,6 +610,7 @@ function useAudio() {
     const objUrl = URL.createObjectURL(file);
     setUrl((old) => { if (old) setTimeout(() => URL.revokeObjectURL(old), 500); return objUrl; });
     setName(file.name); setTime(0); setChannel(null);
+    setKind(/^video\//.test(file.type) || /\.(mp4|m4v|webm|mov|ogv)$/i.test(file.name) ? "video" : "audio");
     setDecoding(true);
     try {
       const buf = await file.arrayBuffer();
@@ -564,7 +657,7 @@ function useAudio() {
     tryPlay(a);
   }, [url, tryPlay]);
 
-  return { elRef, url, name, channel, duration, playing, time, decoding, err, load, play, pause, toggle, seek, playRange };
+  return { elRef, url, name, kind, channel, duration, playing, time, decoding, err, load, play, pause, toggle, seek, playRange };
 }
 
 // find the word whose [start,end) contains t (fallback: last word that started)
@@ -580,15 +673,87 @@ function findActiveWord(words, t) {
   return t <= w.end + 0.05 ? w.id : null;
 }
 
-// ====================================================== preview component ===
-function sentence(s) {
-  s = s.toLowerCase();
-  return s.length ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+// ============================================================== video stage =
+// V3: a draggable picture-in-picture stage. ONE <video> element (also plays
+// audio-only files, so it replaced the old hidden <audio>) stays mounted at all
+// times — when the loaded media is audio, or the stage is hidden, the panel is
+// parked off-screen but the element keeps playing. When an mp4 is loaded it
+// shows the frame with the live caption overlaid, so subs can be reviewed in
+// place against the picture. Timing of the overlay derives from the same word
+// table as the AE export, so what you see here is what AE will build.
+
+// the card visible at time t (playhead inside [in,out)); -1 if none
+function activeCaptionIdx(derived, t) {
+  for (let i = 0; i < derived.length; i++) {
+    if (t >= derived[i].inSec && t < derived[i].outSec) return i;
+  }
+  return -1;
 }
+
+function VideoStage({ elRef, url, name, kind, show, time, derived, onHide, pos, setPos, tlOffset }) {
+  const dragRef = useRef(null);
+  const live = kind === "video" && show && !!url;
+
+  const onPointerDown = (e) => {
+    const panel = e.currentTarget.closest(".vstage");
+    if (!panel) return;
+    const r = panel.getBoundingClientRect();
+    dragRef.current = { dx: e.clientX - r.left, dy: e.clientY - r.top, w: r.width, h: r.height };
+    const move = (ev) => {
+      if (!dragRef.current) return;
+      const { dx, dy, w, h } = dragRef.current;
+      const left = Math.max(6, Math.min(window.innerWidth - w - 6, ev.clientX - dx));
+      const top = Math.max(6, Math.min(window.innerHeight - h - 6, ev.clientY - dy));
+      setPos({ left, top });
+    };
+    const up = () => { dragRef.current = null; window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  };
+
+  // parked (audio-only or hidden): keep the element mounted but out of the way
+  const parkedStyle = { position: "fixed", left: -99999, top: 0, width: 1, height: 1, overflow: "hidden", opacity: 0, pointerEvents: "none" };
+  const placement = pos
+    ? { left: pos.left, top: pos.top, right: "auto", bottom: "auto" }
+    : { right: 18, bottom: 18 + (tlOffset || 0), left: "auto", top: "auto" };
+
+  const d = live && derived.length ? (activeCaptionIdx(derived, time) >= 0 ? derived[activeCaptionIdx(derived, time)] : null) : null;
+  // per-row reveal mirrors AE: each row appears at its own in-point, all clear together
+  const showTop = d && d.top.length && time >= d.topIn;
+  const showHl = d && time >= d.hlIn;
+  const showBot = d && d.bot.length && time >= d.botIn;
+  const topTxt = d ? d.top.map((w) => core(w.text)).join(" ") : "";
+  const hlTxt = d ? d.hl.map((w) => core(w.text)).join(" ") : "";
+  const botTxt = d ? d.bot.map((w) => core(w.text)).join(" ") : "";
+
+  return (
+    <div className="vstage" style={live ? { ...placement, position: "fixed" } : parkedStyle}>
+      <div className="vstage-bar" onPointerDown={onPointerDown}>
+        <span className="vstage-grip"><GripVertical size={12} /></span>
+        <span className="vstage-name mono">{name || "video"}</span>
+        <button className="icon-btn sm" title="Hide video (audio keeps playing)" onPointerDown={(e) => e.stopPropagation()} onClick={onHide}><X size={13} /></button>
+      </div>
+      <div className="vstage-screen">
+        <video ref={elRef} src={url || undefined} playsInline preload="auto" className="vstage-video" />
+        {/* caption overlay — only the live rows, centred like the AE default anchor */}
+        <div className="vstage-cap">
+          {showTop && <div className="vc-sm">{topTxt}</div>}
+          {showHl && <div className="vc-hl">{hlTxt}</div>}
+          {showBot && <div className="vc-sm">{botTxt}</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ====================================================== preview component ===
+// V3 WYSIWYG: the preview shows the card's text exactly as stored (and exactly
+// as the AE builder will render it, now that CaptionBuilder uses HL_CASE/SM_CASE
+// = "asis"). Capitalize by editing the word's text — no auto lower/upper.
 function CardPreview({ d }) {
-  const hlTxt = sentence(d.hl.map((w) => core(w.text)).join(" "));
-  const topTxt = d.top.map((w) => core(w.text)).join(" ").toLowerCase();
-  const botTxt = d.bot.map((w) => core(w.text)).join(" ").toLowerCase();
+  const hlTxt = d.hl.map((w) => core(w.text)).join(" ");
+  const topTxt = d.top.map((w) => core(w.text)).join(" ");
+  const botTxt = d.bot.map((w) => core(w.text)).join(" ");
   return (
     <div className="cap-preview">
       {topTxt && <div className="pv-sm">{topTxt}</div>}
@@ -822,6 +987,7 @@ function Timeline({
 }
 
 // =============================================================== main app ===
+const EMPTY_SET = new Set(); // stable identity so CardRow memo doesn't churn when off-script flagging is toggled off
 export default function CaptionSplitter() {
   const [words, setWords] = useState([]);
   const [cards, setCards] = useState([]);
@@ -833,6 +999,15 @@ export default function CaptionSplitter() {
   const [showCfg, setShowCfg] = useState(false);
   const [showQC, setShowQC] = useState(false);
   const [showTL, setShowTL] = useState(true);
+  const [showOffScript, setShowOffScript] = useState(true); // V3: flag off-script words in the stream
+  const [showVideo, setShowVideo] = useState(true);         // V3: show the PiP video stage when a video is loaded
+  const [stagePos, setStagePos] = useState(null);           // null = default corner; {left,top} once dragged
+  const [restored, setRestored] = useState(false);          // V3: showing the "restored last session" banner
+  const [savedAt, setSavedAt] = useState(0);                // V3: timestamp of last autosave (drives the indicator)
+  const [projOpen, setProjOpen] = useState(false);          // V3: local projects modal
+  const [projects, setProjects] = useState([]);             // V3: saved local projects
+  const restoreGuard = useRef(false);                       // autosave is inert until the mount-restore attempt finishes
+  const docTouched = useRef(false);                         // a doc is active (loaded or restored) — don't auto-restore over it
   const [script, setScript] = useState("");
   const [ignored, setIgnored] = useState(() => new Set()); // rejected mismatch signatures
   const [cursor, setCursor] = useState(0);                 // current mismatch in the triage list
@@ -870,6 +1045,18 @@ export default function CaptionSplitter() {
   const allSubs = useMemo(() => (alignment ? alignment.ops.filter((o) => o.type === "sub") : []), [alignment]);
   const dels = alignment ? alignment.ops.filter((o) => o.type === "del").length : 0;
   const inss = alignment ? alignment.ops.filter((o) => o.type === "ins").length : 0;
+
+  // V3 off-script detection: a transcript word the script has no counterpart for
+  // (a "del" op) is something the client said but didn't script. Contiguous runs
+  // read as off-script passages; lone ones are usually filler. Alignment is
+  // already live (recomputes on every script/word change), so this flags
+  // automatically the moment a script is present — no button to press.
+  const offScriptIds = useMemo(() => {
+    const s = new Set();
+    if (!alignment) return s;
+    for (const op of alignment.ops) if (op.type === "del" && words[op.t]) s.add(words[op.t].id);
+    return s;
+  }, [alignment, words]);
 
   // A mismatch's identity is the (transcript word, script spelling) pair, so a
   // rejected one stays rejected across live re-alignment as long as it recurs.
@@ -978,7 +1165,7 @@ export default function CaptionSplitter() {
         setError("Unrecognized JSON. Load a Premiere transcript (with segments and words) or a word table exported here.");
         return;
       }
-      setError(""); setFileName(name); setHlAnchor({});
+      setError(""); setFileName(name); setHlAnchor({}); docTouched.current = true;
     } catch (e) { setError("Couldn't process the file: " + e.message); }
   }, [cfg, resetDoc]);
 
@@ -1001,6 +1188,19 @@ export default function CaptionSplitter() {
     const next = renumber(cards.slice(0, cardIdx).concat([a, b], cards.slice(cardIdx + 1)));
     apply(words, next); setHlAnchor({});
   }, [cards, words, wordById, apply]);
+
+  // V3 "Split into two": a deliberate, one-click card split (vs the easy-to-miss
+  // between-words scissors). Breaks AFTER the highlighted word so the current
+  // highlight stays on the first card and the second card re-picks its own —
+  // giving you two separate highlighted words across the same timing span. If the
+  // highlight is the last word, fall back to splitting off that last word so the
+  // action is never a no-op.
+  const splitAtHL = useCallback((cardIdx) => {
+    const card = cards[cardIdx];
+    if (!card || card.wordIds.length < 2) return;
+    const at = Math.min(card.hlTo, card.wordIds.length - 2);
+    splitCard(cardIdx, at);
+  }, [cards, splitCard]);
 
   const mergeUp = useCallback((cardIdx) => {
     if (cardIdx === 0 || !cards[cardIdx]) return;
@@ -1177,7 +1377,7 @@ export default function CaptionSplitter() {
 
   // ---- exports ----
   const exportCaptions = () => download((fileName.replace(/\.json$/i, "") || "captions") + "_captions.json", buildCaptionsJSON(cards, derived));
-  const exportTable = () => download((fileName.replace(/\.json$/i, "") || "captions") + "_wordtable.json", { meta: { tool: "CaptionSplitter", version: 2.5, cfg }, words, cards });
+  const exportTable = () => download((fileName.replace(/\.json$/i, "") || "captions") + "_wordtable.json", { meta: { tool: "CaptionSplitter", version: 3.2, cfg }, words, cards });
 
   // ---- fit timeline to window ----
   const fitTimeline = useCallback(() => {
@@ -1232,14 +1432,91 @@ export default function CaptionSplitter() {
     return () => window.removeEventListener("keydown", onKey);
   }, [showQC, modal, editing, curIdx, applyCurrent, rejectCurrent, moveCursor]);
 
+  // ---- V3 local persistence: restore last session, then autosave on change ----
+  const loadDocObject = useCallback((doc, markRestored) => {
+    if (!doc || !Array.isArray(doc.words) || !doc.words.length || !Array.isArray(doc.cards)) return false;
+    resetDoc(computeEmphasis(doc.words), doc.cards);
+    if (doc.cfg) setCfg(doc.cfg);
+    setScript(typeof doc.script === "string" ? doc.script : "");
+    setIgnored(new Set(Array.isArray(doc.ignored) ? doc.ignored : []));
+    setFileName(doc.fileName || "");
+    setError(""); setHlAnchor({});
+    docTouched.current = true;
+    if (markRestored) setRestored(true);
+    return true;
+  }, [resetDoc]);
+
+  // on first mount: pull the rolling autosave slot and restore it (unless the
+  // user already loaded something while we were reading).
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const doc = await idbKvGet("current");
+      if (alive && !docTouched.current) loadDocObject(doc, true);
+      restoreGuard.current = true; // autosave may run from here on
+    })();
+    return () => { alive = false; };
+  }, [loadDocObject]);
+
+  // debounced autosave of the project state (never the media blob)
+  useEffect(() => {
+    if (!restoreGuard.current || !words.length) return;
+    const t = setTimeout(async () => {
+      const ok = await idbKvPut("current", {
+        words, cards, cfg, script, fileName, ignored: [...ignored], updatedAt: Date.now(), v: 3.2,
+      });
+      if (ok) setSavedAt(Date.now());
+    }, 700);
+    return () => clearTimeout(t);
+  }, [words, cards, cfg, script, fileName, ignored]);
+
+  // start a brand-new document and clear the autosave slot
+  const startFresh = useCallback(async () => {
+    if (typeof window !== "undefined" && words.length &&
+        !window.confirm("Clear the current document and start fresh? Your local autosave will be cleared too (saved projects are kept).")) return;
+    setPast([]); setFuture([]); lastTag.current = null;
+    setWords([]); setCards([]); setScript(""); setIgnored(new Set());
+    setFileName(""); setError(""); setRestored(false);
+    await idbKvDel("current");
+  }, [words]);
+
+  // ---- local projects (named saves) ----
+  const refreshProjects = useCallback(async () => { setProjects(await idbProjAll()); }, []);
+  useEffect(() => { if (projOpen) refreshProjects(); }, [projOpen, refreshProjects]);
+
+  const saveProjectAs = useCallback(async (name) => {
+    const nm = (name || fileName || "Untitled").trim() || "Untitled";
+    const p = {
+      id: "p" + Date.now().toString(36),
+      name: nm,
+      savedAt: Date.now(),
+      cardCount: cards.length, wordCount: words.length,
+      doc: { words, cards, cfg, script, fileName, ignored: [...ignored], v: 3.2 },
+    };
+    await idbProjPut(p);
+    refreshProjects();
+  }, [words, cards, cfg, script, fileName, ignored, refreshProjects]);
+
+  const openProject = useCallback((p) => {
+    if (p && loadDocObject(p.doc, false)) { setRestored(false); setProjOpen(false); }
+  }, [loadDocObject]);
+
+  const deleteProject = useCallback(async (id) => {
+    await idbProjDel(id); refreshProjects();
+  }, [refreshProjects]);
+
   // ====================================================================== UI
   return (
     <div className="cap-root" style={rootStyle}>
       <style>{CSS}</style>
 
-      {/* the player element lives in the DOM so playback works inside sandboxed
-          iframes; React binds its source to the loaded blob URL */}
-      <audio ref={audio.elRef} src={audio.url || undefined} preload="auto" style={{ display: "none" }} />
+      {/* the media element lives in the DOM at all times (it plays audio-only
+          files too), so playback works inside sandboxed iframes and never
+          remounts. When an mp4 is loaded it surfaces as the draggable stage. */}
+      <VideoStage elRef={audio.elRef} url={audio.url} name={audio.name} kind={audio.kind}
+        show={showVideo} time={audio.time} derived={derived}
+        onHide={() => setShowVideo(false)} pos={stagePos} setPos={setStagePos}
+        tlOffset={showTL ? TL_H + 56 : 0} />
 
       {/* ---------------- top bar ---------------- */}
       <header style={barStyle}>
@@ -1248,10 +1525,16 @@ export default function CaptionSplitter() {
             style={{ borderRadius: 7, display: "block", flex: "0 0 auto" }} />
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 13, fontWeight: 650, letterSpacing: "-0.01em" }}>
-              Caption Splitter <span className="mono" style={{ fontSize: 9.5, color: C.mut2, fontWeight: 600, verticalAlign: "middle" }}>V2.5</span>
+              Caption Splitter <span className="mono" style={{ fontSize: 9.5, color: C.mut2, fontWeight: 600, verticalAlign: "middle" }}>V3.2</span>
             </div>
             <div className="mono" style={{ fontSize: 10.5, color: C.mut2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {loaded ? fileName : "no transcript loaded"}
+              {loaded && idbAvailable && savedAt > 0 && (
+                <span style={{ color: C.ok, marginLeft: 8 }}>· autosaved</span>
+              )}
+              {loaded && !idbAvailable && (
+                <span style={{ color: C.mut2, marginLeft: 8 }}>· autosave off (deployed site only)</span>
+              )}
             </div>
           </div>
         </div>
@@ -1272,16 +1555,27 @@ export default function CaptionSplitter() {
               </button>
             </span>
             <button className="btn" onClick={() => audioInput.current && audioInput.current.click()} data-on={audio.url ? "1" : ""}>
-              <Music size={13} /> {audio.url ? "Replace audio" : "Load audio"}
+              {audio.kind === "video" && audio.url ? <Video size={13} /> : <Music size={13} />} {audio.url ? "Replace media" : "Load audio / video"}
             </button>
-            <input ref={audioInput} type="file" accept="audio/*,.wav,.mp3,.m4a,.aac,.ogg,.flac" style={{ display: "none" }}
-              onChange={(e) => { audio.load(e.target.files[0]); e.target.value = ""; setShowTL(true); }} />
+            <input ref={audioInput} type="file" accept="audio/*,video/mp4,video/webm,.wav,.mp3,.m4a,.aac,.ogg,.flac,.mp4,.m4v,.webm,.mov" style={{ display: "none" }}
+              onChange={(e) => { audio.load(e.target.files[0]); e.target.value = ""; setShowTL(true); setShowVideo(true); }} />
+            {audio.kind === "video" && audio.url && (
+              <button className="btn" onClick={() => setShowVideo((v) => !v)} data-on={showVideo ? "1" : ""} title="Show the video stage with subtitles overlaid">
+                <Video size={13} /> Video
+              </button>
+            )}
             <button className="btn" onClick={() => setShowTL((v) => !v)} data-on={showTL ? "1" : ""}>
               <Clock size={13} /> Timeline
             </button>
             <button className="btn" onClick={() => setShowQC((v) => !v)} data-on={showQC ? "1" : ""}>
               <ListChecks size={13} /> Check script {activeSubs.length ? <span className="badge">{activeSubs.length}</span> : null}
             </button>
+            {alignment && dels > 0 && (
+              <button className="btn" onClick={() => setShowOffScript((v) => !v)} data-on={showOffScript ? "1" : ""}
+                title="Flag words that were spoken but aren't in the loaded script (client went off-script)">
+                <ScanLine size={13} /> Off-script <span className="badge">{offScriptIds.size}</span>
+              </button>
+            )}
             <button className="btn" onClick={() => setShowCfg((v) => !v)} data-on={showCfg ? "1" : ""}>
               <Sliders size={13} /> Rules
             </button>
@@ -1291,11 +1585,29 @@ export default function CaptionSplitter() {
             <button className="btn btn-ghost" onClick={() => setModal("aescript")} title="Get the After Effects builder script">
               <FileCode2 size={13} /> AE script
             </button>
+            {idbAvailable && (
+              <button className="btn btn-ghost" onClick={() => setProjOpen(true)} title="Save & open local projects (stored in this browser)">
+                <FolderOpen size={13} /> Projects
+              </button>
+            )}
             <button className="btn btn-ghost" onClick={exportTable}><Layers size={13} /> Word table</button>
             <button className="btn btn-accent" onClick={exportCaptions}><Download size={13} /> Export captions</button>
           </>}
         </div>
       </header>
+
+      {/* ---------------- restored-session banner ---------------- */}
+      {restored && loaded && (
+        <div style={restoreBar}>
+          <History size={13} color={C.ok} />
+          <span style={{ fontSize: 12, color: C.text }}>
+            Restored your last local session{fileName ? <> · <span className="mono" style={{ color: C.mut }}>{fileName}</span></> : null}.
+          </span>
+          <span style={{ flex: 1 }} />
+          <button className="btn btn-sm btn-ghost" onClick={startFresh}>Start fresh</button>
+          <button className="icon-btn sm" onClick={() => setRestored(false)} title="Dismiss"><X size={13} /></button>
+        </div>
+      )}
 
       {/* ---------------- config strip ---------------- */}
       {loaded && showCfg && (
@@ -1342,6 +1654,7 @@ export default function CaptionSplitter() {
             tone={warnCount ? "warn" : null} />
           {alignment && <Stat icon={<ListChecks size={12} />} label="script mismatches" value={activeSubs.length}
             tone={activeSubs.length ? "accent" : "ok"} />}
+          {alignment && showOffScript && offScriptIds.size > 0 && <Stat icon={<ScanLine size={12} />} label="off-script words" value={offScriptIds.size} tone="warn" />}
         </div>
       )}
 
@@ -1361,8 +1674,9 @@ export default function CaptionSplitter() {
                 <Eye size={13} style={{ flex: "0 0 auto", marginTop: 1 }} />
                 <span>
                   Click a word to make it the <span style={{ color: C.accentText }}>highlight</span>; shift-click to extend.
-                  Double-click to fix a typo. Between words: <Scissors size={10} style={{ verticalAlign: "-1px" }} /> splits the card,
+                  Double-click to fix a typo or set its capitalization. <SplitSquareHorizontal size={10} style={{ verticalAlign: "-1px" }} /> on the rail splits a card into two; between words, <Scissors size={10} style={{ verticalAlign: "-1px" }} /> splits at that point,
                   {" "}<Link2 size={10} style={{ verticalAlign: "-1px" }} /> merges the two words into one timing atom.
+                  {alignment && dels > 0 && <> Words <span className="tok-offscript" style={{ color: C.mut }}>underlined in amber</span> were spoken but aren't in the loaded script.</>}
                   {audio.url && <> Tap <Play size={10} style={{ verticalAlign: "-1px" }} /> on a card to hear it; the live word is lit.</>}
                 </span>
               </div>
@@ -1372,8 +1686,9 @@ export default function CaptionSplitter() {
                   activeWord={ci === activeCardIdx ? activeWord : null}
                   located={ci === locatedCardIdx ? located : null} hasAudio={!!audio.url}
                   setEditVal={setEditVal} startEdit={startEdit} commitEdit={commitEdit} cancelEdit={cancelEdit}
-                  setHL={setHL} splitCard={splitCard} mergeUp={mergeUp} mergeDown={mergeDown}
+                  setHL={setHL} splitCard={splitCard} splitAtHL={splitAtHL} mergeUp={mergeUp} mergeDown={mergeDown}
                   mergeWords={mergeWordsByIds} playCard={playCard} playWord={playWord}
+                  offScript={showOffScript ? offScriptIds : EMPTY_SET}
                   isLast={ci === cards.length - 1} />
               ))}
             </>
@@ -1394,15 +1709,21 @@ export default function CaptionSplitter() {
             </p>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, margin: "0 0 6px" }}>
               <span style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.04em", color: C.mut }}>Script</span>
-              <button className="btn btn-sm btn-ghost" onClick={() => scriptInput.current && scriptInput.current.click()}>
-                <Upload size={12} /> Load .txt
-              </button>
+              <span style={{ display: "flex", gap: 6 }}>
+                <button className="btn btn-sm btn-ghost" onClick={() => setScript((s) => cleanScript(s))}
+                  disabled={!script.trim()} title="Strip headers, timecodes, cue numbers and speaker labels from the pasted script">
+                  <Eraser size={12} /> Tidy
+                </button>
+                <button className="btn btn-sm btn-ghost" onClick={() => scriptInput.current && scriptInput.current.click()}>
+                  <Upload size={12} /> Load .txt
+                </button>
+              </span>
               <input ref={scriptInput} type="file" accept=".txt,text/plain,.md,.srt,.vtt" style={{ display: "none" }}
                 onChange={(e) => {
                   const file = e.target.files[0]; e.target.value = "";
                   if (!file) return;
                   const r = new FileReader();
-                  r.onload = () => setScript(String(r.result || ""));
+                  r.onload = () => setScript(cleanScript(String(r.result || "")));
                   r.readAsText(file);
                 }} />
             </div>
@@ -1517,6 +1838,10 @@ export default function CaptionSplitter() {
       {modal === "aescript" && (
         <AeScriptModal copied={copied} onCopy={copyBuilder} onDownload={downloadBuilder} onClose={() => setModal(null)} />
       )}
+      {projOpen && (
+        <ProjectsModal projects={projects} loaded={loaded} fileName={fileName}
+          onSave={saveProjectAs} onOpen={openProject} onDelete={deleteProject} onClose={() => setProjOpen(false)} />
+      )}
     </div>
   );
 }
@@ -1594,7 +1919,7 @@ function ShortcutsModal({ hasAudio, onClose }) {
         Mouse on the card stream: <b>click</b> sets the highlight, <b>shift-click</b> extends it,
         <b> double-click</b> edits text. Between two words, the <Scissors size={11} style={{ verticalAlign: "-2px" }} /> splits
         the card and the <Link2 size={11} style={{ verticalAlign: "-2px" }} /> merges the two words into one timing atom. The
-        card rail's <ArrowUpToLine size={11} style={{ verticalAlign: "-2px" }} />/<ArrowDownToLine size={11} style={{ verticalAlign: "-2px" }} /> merge
+        card rail's <SplitSquareHorizontal size={11} style={{ verticalAlign: "-2px" }} /> splits a card into two, and its <ArrowUpToLine size={11} style={{ verticalAlign: "-2px" }} />/<ArrowDownToLine size={11} style={{ verticalAlign: "-2px" }} /> merge
         a card into its neighbour{hasAudio ? <>, and <Play size={11} style={{ verticalAlign: "-2px" }} /> plays the card.</> : "."}
       </div>
     </Modal>
@@ -1623,6 +1948,51 @@ function AeScriptModal({ copied, onCopy, onDownload, onClose }) {
 }
 
 // ----------------------------------------------------------- subcomponents --
+function ProjectsModal({ projects, loaded, fileName, onSave, onOpen, onDelete, onClose }) {
+  const [name, setName] = useState("");
+  const when = (t) => { try { return new Date(t).toLocaleString(); } catch (e) { return ""; } };
+  const sorted = [...projects].sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+  return (
+    <Modal title="Local projects" icon={<FolderOpen size={16} color={C.accent} />} onClose={onClose} wide>
+      <p style={{ fontSize: 12.5, color: C.mut, lineHeight: 1.55, margin: "0 0 12px" }}>
+        Saved in this browser only (no account, no upload). Your work also autosaves continuously to a rolling slot — these named saves are checkpoints you can return to. The clip's audio/video isn't stored, so reload it after opening a project.
+      </p>
+      <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+        <input className="ta" style={{ flex: 1, minHeight: 0, height: 34, padding: "7px 10px" }}
+          placeholder={"Name this save… (" + (fileName || "Untitled") + ")"} value={name}
+          onChange={(e) => setName(e.target.value)} spellCheck={false}
+          onKeyDown={(e) => { if (e.key === "Enter" && loaded) { onSave(name); setName(""); } }} />
+        <button className="btn btn-accent btn-sm" disabled={!loaded} onClick={() => { onSave(name); setName(""); }}>
+          <Save size={13} /> Save checkpoint
+        </button>
+      </div>
+      {sorted.length === 0 ? (
+        <div style={{ fontSize: 12.5, color: C.mut2, padding: "14px 0", textAlign: "center" }}>No saved projects yet.</div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {sorted.map((p) => (
+            <div key={p.id} className="proj-row">
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</div>
+                <div className="mono" style={{ fontSize: 10.5, color: C.mut2 }}>
+                  {p.cardCount || 0} cards · {p.wordCount || 0} words · {when(p.savedAt)}
+                </div>
+              </div>
+              <span style={{ display: "flex", gap: 4, flex: "0 0 auto" }}>
+                <button className="btn btn-sm" onClick={() => onOpen(p)}><HardDriveDownload size={12} /> Open</button>
+                <button className="icon-btn sm" title="Delete this save"
+                  onClick={() => { if (typeof window === "undefined" || window.confirm('Delete "' + p.name + '"?')) onDelete(p.id); }}>
+                  <Trash2 size={13} />
+                </button>
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </Modal>
+  );
+}
+
 function Stat({ icon, label, value, tone }) {
   const col = tone === "warn" ? C.warn : tone === "accent" ? C.accentText : tone === "ok" ? C.ok : C.text;
   return (
@@ -1636,8 +2006,8 @@ function Stat({ icon, label, value, tone }) {
 
 const CardRow = React.memo(function CardRow({
   card, ci, d, wordById, editing, editVal, flash, activeWord, located, hasAudio,
-  setEditVal, startEdit, commitEdit, cancelEdit, setHL, splitCard, mergeUp, mergeDown,
-  mergeWords, playCard, playWord, isLast,
+  setEditVal, startEdit, commitEdit, cancelEdit, setHL, splitCard, splitAtHL, mergeUp, mergeDown,
+  mergeWords, playCard, playWord, offScript, isLast,
 }) {
   if (!d) return null;
   const ws = d.top.concat(d.hl, d.bot);
@@ -1651,6 +2021,12 @@ const CardRow = React.memo(function CardRow({
           {hasAudio && (
             <button className="icon-btn sm" title="Play this card's audio" onClick={() => playCard(ci)}>
               <Play size={12} />
+            </button>
+          )}
+          {card.wordIds.length > 1 && (
+            <button className="icon-btn sm" title="Split into two cards (breaks after the highlight; each card gets its own highlight)"
+              onClick={() => splitAtHL(ci)}>
+              <SplitSquareHorizontal size={12} />
             </button>
           )}
           {ci > 0 && (
@@ -1684,8 +2060,8 @@ const CardRow = React.memo(function CardRow({
                     style={{ width: Math.max(40, editVal.length * 9 + 18) }} />
                 ) : (
                   <span data-wid={w.id}
-                    className={"tok tok-" + role + (flash[w.id] ? " tok-flash" : "") + (isActive ? " tok-active" : "") + (isLocated ? " tok-located" : "")}
-                    title={core(w.text) + "  ·  " + w.start.toFixed(2) + "–" + w.end.toFixed(2) + "s  ·  " + w.id}
+                    className={"tok tok-" + role + (flash[w.id] ? " tok-flash" : "") + (isActive ? " tok-active" : "") + (isLocated ? " tok-located" : "") + (offScript.has(w.id) ? " tok-offscript" : "")}
+                    title={core(w.text) + "  ·  " + w.start.toFixed(2) + "–" + w.end.toFixed(2) + "s  ·  " + w.id + (offScript.has(w.id) ? "  ·  not in script" : "")}
                     onClick={(e) => { if (e.altKey && hasAudio) { playWord(w); return; } setHL(ci, local, e.shiftKey); }}
                     onDoubleClick={() => startEdit(w)}>
                     {core(w.text)}
@@ -1774,6 +2150,10 @@ const statBar = {
   display: "flex", gap: 22, alignItems: "center", flexWrap: "wrap",
   padding: "9px 18px", borderBottom: "1px solid " + C.borderSoft, background: C.bg, flex: "0 0 auto",
 };
+const restoreBar = {
+  display: "flex", alignItems: "center", gap: 9,
+  padding: "7px 18px", borderBottom: "1px solid " + C.borderSoft, background: C.okDim, flex: "0 0 auto",
+};
 const cardRow = {
   display: "flex", gap: 16, alignItems: "flex-start",
   padding: "14px 8px", borderBottom: "1px solid " + C.borderSoft,
@@ -1824,6 +2204,23 @@ const CSS = `
 .tok-flash{animation:flash 1.3s ease}
 .tok-active{box-shadow:inset 0 -2px 0 0 var(--ok),0 0 0 1px rgba(61,214,140,.5);color:var(--text)!important}
 .tok-located{box-shadow:0 0 0 2px var(--accent),0 0 0 5px rgba(229,72,77,.25)!important;background:var(--accentDim)!important;color:var(--text)!important;animation:locatePulse 1.1s ease}
+.tok-offscript{text-decoration:underline dashed var(--warn);text-decoration-thickness:2px;text-underline-offset:3px}
+.tok-offscript:hover{text-decoration-color:#f0c14b}
+.vstage{z-index:50;width:min(46vw,460px);background:#000;border:1px solid var(--border);border-radius:10px;
+  box-shadow:0 18px 50px rgba(0,0,0,.6);overflow:hidden;display:flex;flex-direction:column}
+.vstage-bar{display:flex;align-items:center;gap:7px;padding:5px 7px;background:var(--panel);border-bottom:1px solid var(--border);cursor:grab;user-select:none}
+.vstage-bar:active{cursor:grabbing}
+.vstage-grip{color:var(--mut2);display:grid;place-items:center}
+.vstage-name{flex:1;min-width:0;font-size:10.5px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vstage-screen{position:relative;width:100%;aspect-ratio:16/9;background:#000;display:grid;place-items:center}
+.vstage-video{width:100%;height:100%;object-fit:contain;display:block;background:#000}
+.vstage-cap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;padding:0 6%;pointer-events:none;text-align:center;text-shadow:0 2px 8px rgba(0,0,0,.85)}
+.vc-sm{font-size:clamp(11px,2.4vw,17px);line-height:1.15;color:#fff;font-weight:500}
+.vc-hl{font-size:clamp(17px,4vw,30px);line-height:1.1;color:#fff;font-weight:750;letter-spacing:-0.01em}
+.proj-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;
+  border:1px solid var(--border);border-radius:8px;background:var(--panel2)}
+.proj-row:hover{border-color:#34343b}
 @keyframes locatePulse{0%{box-shadow:0 0 0 2px var(--accent),0 0 0 10px rgba(229,72,77,.45)}100%{box-shadow:0 0 0 2px var(--accent),0 0 0 5px rgba(229,72,77,.18)}}
 
 .sub-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 8px;margin:0 -8px;
