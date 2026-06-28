@@ -32,7 +32,7 @@ import {
   Eye, Play, Pause, Link2, Music, ZoomIn, ZoomOut, Maximize2, Volume2,
   Undo2, Redo2, Keyboard, FileCode2, Copy, ClipboardCheck,
   Eraser, SplitSquareHorizontal, ScanLine,
-  GripVertical, Video, Save, FolderOpen, Trash2, History, HardDriveDownload,
+  GripVertical, Video, Save, FolderOpen, Trash2, History, HardDriveDownload, Unlink,
 } from "lucide-react";
 
 // ---------------------------------------------------------------- palette ---
@@ -692,7 +692,10 @@ function activeCaptionIdx(derived, t) {
 
 function VideoStage({ elRef, url, name, kind, show, time, derived, onHide, pos, setPos, tlOffset }) {
   const dragRef = useRef(null);
-  const [vh, setVh] = useState(1920); // intrinsic video height; AE sizes (160/55) are relative to this
+  // intrinsic video dims; AE sizes (160/55) are relative to the comp height (vh).
+  // We also need a definite aspect on the screen, because container-type:size
+  // collapses it to 0 height otherwise. Default to 1080x1920 short-form.
+  const [vdim, setVdim] = useState({ w: 1080, h: 1920 });
   const live = kind === "video" && show && !!url;
 
   const onPointerDown = (e) => {
@@ -736,9 +739,9 @@ function VideoStage({ elRef, url, name, kind, show, time, derived, onHide, pos, 
         <span className="vstage-name mono">{name || "video"}</span>
         <button className="icon-btn sm" title="Hide video (audio keeps playing)" onPointerDown={(e) => e.stopPropagation()} onClick={onHide}><X size={13} /></button>
       </div>
-      <div className="vstage-screen" style={{ ["--ih"]: vh }}>
+      <div className="vstage-screen" style={{ ["--ih"]: vdim.h, aspectRatio: vdim.w + " / " + vdim.h }}>
         <video ref={elRef} src={url || undefined} playsInline preload="auto" className="vstage-video"
-          onLoadedMetadata={(e) => { const h = e.currentTarget.videoHeight; if (h) setVh(h); }} />
+          onLoadedMetadata={(e) => { const t = e.currentTarget; if (t.videoWidth && t.videoHeight) setVdim({ w: t.videoWidth, h: t.videoHeight }); }} />
         {/* caption overlay — only the live rows, centred like the AE default anchor.
             Font sizes are the real AE px (160/55) scaled to the rendered frame, so
             this is true to what AE will build (Europa Grotesk SH / Inter Light). */}
@@ -1245,7 +1248,47 @@ export default function CaptionSplitter() {
     apply(nextW, nextC); setHlAnchor({}); setEditing(null);
   }, [words, cards, apply]);
 
-  // ---- highlight span (consecutive tweaks on one card coalesce into one undo) ----
+  // V3: inverse of the word-merge. A word whose text carries a space is one that
+  // was Link2-merged (e.g. "action takers"). This splits it back into its tokens
+  // — dividing the duration by character length to reconstruct per-word timing —
+  // and breaks the host card so the tokens land in SEPARATE cards (so "2 words in
+  // 1 card" becomes "2 cards"). New atoms get fresh ids that survive save/restore.
+  const unmergeWord = useCallback((wordId) => {
+    const gi = words.findIndex((w) => w.id === wordId);
+    if (gi < 0) return;
+    const w = words[gi];
+    const toks = core(w.text).trim().split(/\s+/).filter(Boolean);
+    if (toks.length < 2) return; // nothing merged to split
+    const dur = Math.max(0.001, (w.end || 0) - (w.start || 0));
+    const totalChars = toks.reduce((s, t) => s + Math.max(1, t.length), 0);
+    const seed = "wm" + Date.now().toString(36);
+    let cursor = w.start || 0;
+    const toksW = toks.map((t, i) => {
+      const s = cursor;
+      const e = i === toks.length - 1 ? (w.end || 0) : cursor + dur * (Math.max(1, t.length) / totalChars);
+      cursor = e;
+      return { ...w, id: seed + i, text: t, start: s, end: e,
+        sentenceStart: i === 0 ? w.sentenceStart : false,
+        eos: i === toks.length - 1 ? w.eos : false };
+    });
+    const tokIds = toksW.map((t) => t.id);
+    const nextWords = computeEmphasis(words.slice(0, gi).concat(toksW, words.slice(gi + 1)));
+    const nbyId = {}; nextWords.forEach((x) => (nbyId[x.id] = x));
+    const nextCards = [];
+    for (const c of cards) {
+      const li = c.wordIds.indexOf(wordId);
+      if (li === -1) { nextCards.push(c); continue; }
+      const ids = c.wordIds.slice(0, li).concat(tokIds, c.wordIds.slice(li + 1));
+      // first token rides with everything before it; each later token starts a new
+      // card; the trailing words ride with the final token.
+      const pieces = [ids.slice(0, li + 1)];
+      for (let k = 1; k < tokIds.length; k++) {
+        pieces.push(k === tokIds.length - 1 ? ids.slice(li + k) : [tokIds[k]]);
+      }
+      for (const p of pieces) nextCards.push({ id: 0, wordIds: p, ...rePickFor(p, nbyId, 40) });
+    }
+    apply(nextWords, renumber(nextCards)); setHlAnchor({}); setEditing(null);
+  }, [words, cards, apply]);
   const setHL = useCallback((cardIdx, local, shift) => {
     const next = cards.map((c, i) => {
       if (i !== cardIdx) return c;
@@ -1383,7 +1426,7 @@ export default function CaptionSplitter() {
 
   // ---- exports ----
   const exportCaptions = () => download((fileName.replace(/\.json$/i, "") || "captions") + "_captions.json", buildCaptionsJSON(cards, derived));
-  const exportTable = () => download((fileName.replace(/\.json$/i, "") || "captions") + "_wordtable.json", { meta: { tool: "CaptionSplitter", version: 3.2, cfg }, words, cards });
+  const exportTable = () => download((fileName.replace(/\.json$/i, "") || "captions") + "_wordtable.json", { meta: { tool: "CaptionSplitter", version: 3.3, cfg }, words, cards });
 
   // ---- fit timeline to window ----
   const fitTimeline = useCallback(() => {
@@ -1531,7 +1574,7 @@ export default function CaptionSplitter() {
             style={{ borderRadius: 7, display: "block", flex: "0 0 auto" }} />
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 13, fontWeight: 650, letterSpacing: "-0.01em" }}>
-              Caption Splitter <span className="mono" style={{ fontSize: 9.5, color: C.mut2, fontWeight: 600, verticalAlign: "middle" }}>V3.2.1</span>
+              Caption Splitter <span className="mono" style={{ fontSize: 9.5, color: C.mut2, fontWeight: 600, verticalAlign: "middle" }}>V3.3</span>
             </div>
             <div className="mono" style={{ fontSize: 10.5, color: C.mut2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {loaded ? fileName : "no transcript loaded"}
@@ -1681,7 +1724,7 @@ export default function CaptionSplitter() {
                 <span>
                   Click a word to make it the <span style={{ color: C.accentText }}>highlight</span>; shift-click to extend.
                   Double-click to fix a typo or set its capitalization. <SplitSquareHorizontal size={10} style={{ verticalAlign: "-1px" }} /> on the rail splits a card into two; between words, <Scissors size={10} style={{ verticalAlign: "-1px" }} /> splits at that point,
-                  {" "}<Link2 size={10} style={{ verticalAlign: "-1px" }} /> merges the two words into one timing atom.
+                  {" "}<Link2 size={10} style={{ verticalAlign: "-1px" }} /> merges the two words into one timing atom; a merged word shows an <Unlink size={10} style={{ verticalAlign: "-1px" }} /> to split it back into separate cards.
                   {alignment && dels > 0 && <> Words <span className="tok-offscript" style={{ color: C.mut }}>underlined in amber</span> were spoken but aren't in the loaded script.</>}
                   {audio.url && <> Tap <Play size={10} style={{ verticalAlign: "-1px" }} /> on a card to hear it; the live word is lit.</>}
                 </span>
@@ -1693,7 +1736,7 @@ export default function CaptionSplitter() {
                   located={ci === locatedCardIdx ? located : null} hasAudio={!!audio.url}
                   setEditVal={setEditVal} startEdit={startEdit} commitEdit={commitEdit} cancelEdit={cancelEdit}
                   setHL={setHL} splitCard={splitCard} splitAtHL={splitAtHL} mergeUp={mergeUp} mergeDown={mergeDown}
-                  mergeWords={mergeWordsByIds} playCard={playCard} playWord={playWord}
+                  mergeWords={mergeWordsByIds} unmergeWord={unmergeWord} playCard={playCard} playWord={playWord}
                   offScript={showOffScript ? offScriptIds : EMPTY_SET}
                   isLast={ci === cards.length - 1} />
               ))}
@@ -2013,7 +2056,7 @@ function Stat({ icon, label, value, tone }) {
 const CardRow = React.memo(function CardRow({
   card, ci, d, wordById, editing, editVal, flash, activeWord, located, hasAudio,
   setEditVal, startEdit, commitEdit, cancelEdit, setHL, splitCard, splitAtHL, mergeUp, mergeDown,
-  mergeWords, playCard, playWord, offScript, isLast,
+  mergeWords, unmergeWord, playCard, playWord, offScript, isLast,
 }) {
   if (!d) return null;
   const ws = d.top.concat(d.hl, d.bot);
@@ -2066,12 +2109,18 @@ const CardRow = React.memo(function CardRow({
                     style={{ width: Math.max(40, editVal.length * 9 + 18) }} />
                 ) : (
                   <span data-wid={w.id}
-                    className={"tok tok-" + role + (flash[w.id] ? " tok-flash" : "") + (isActive ? " tok-active" : "") + (isLocated ? " tok-located" : "") + (offScript.has(w.id) ? " tok-offscript" : "")}
-                    title={core(w.text) + "  ·  " + w.start.toFixed(2) + "–" + w.end.toFixed(2) + "s  ·  " + w.id + (offScript.has(w.id) ? "  ·  not in script" : "")}
+                    className={"tok tok-" + role + (flash[w.id] ? " tok-flash" : "") + (isActive ? " tok-active" : "") + (isLocated ? " tok-located" : "") + (offScript.has(w.id) ? " tok-offscript" : "") + (core(w.text).trim().includes(" ") ? " tok-merged" : "")}
+                    title={core(w.text) + "  ·  " + w.start.toFixed(2) + "–" + w.end.toFixed(2) + "s  ·  " + w.id + (offScript.has(w.id) ? "  ·  not in script" : "") + (core(w.text).trim().includes(" ") ? "  ·  merged — click the unlink to split into separate cards" : "")}
                     onClick={(e) => { if (e.altKey && hasAudio) { playWord(w); return; } setHL(ci, local, e.shiftKey); }}
                     onDoubleClick={() => startEdit(w)}>
                     {core(w.text)}
                   </span>
+                )}
+                {!isEditing && core(w.text).trim().includes(" ") && (
+                  <button className="unmerge-handle" title="Unmerge — split this back into separate words / cards"
+                    onClick={() => unmergeWord(w.id)}>
+                    <Unlink size={10} />
+                  </button>
                 )}
                 {local < ws.length - 1 && (
                   <span className="gap-ctl">
@@ -2220,7 +2269,7 @@ const CSS = `
 .vstage-grip{color:var(--mut2);display:grid;place-items:center}
 .vstage-name{flex:1;min-width:0;font-size:10.5px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .vstage-screen{position:relative;width:100%;background:#000;container-type:size}
-.vstage-video{width:100%;height:auto;display:block;background:#000}
+.vstage-video{width:100%;height:100%;object-fit:contain;display:block;background:#000}
 .vstage-cap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:0.4cqh;padding:0 5%;pointer-events:none;text-align:center;text-shadow:0 0.25cqh 1cqh rgba(0,0,0,.85)}
 /* AE sizes are px in a comp --ih tall (1080x1920 short-form by default). 1cqh = 1% of
@@ -2280,6 +2329,11 @@ const CSS = `
 .merge-handle:hover{color:var(--ok);background:#202024}
 .card-row:hover .split-handle{color:#3a3a40}
 .card-row:hover .merge-handle{color:#34343a}
+.tok-merged{box-shadow:inset 0 -2px 0 0 var(--ok)}
+.unmerge-handle{display:inline-grid;place-items:center;width:15px;height:15px;border:none;background:transparent;
+  color:var(--ok);cursor:pointer;border-radius:3px;margin:0 2px 0 1px;vertical-align:middle;padding:0;opacity:.55;
+  transition:opacity .12s ease,background .12s ease}
+.unmerge-handle:hover{opacity:1;background:#202024}
 
 .num{width:62px;background:#0a0a0b;border:1px solid var(--border);border-radius:6px;color:var(--text);
   padding:5px 7px;font-size:12px;outline:none}
